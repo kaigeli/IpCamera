@@ -1,0 +1,200 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="date" content="0">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<meta http-equiv="expires" content="0">
+<link rel="stylesheet" href="style.css" type="text/css">
+<title></title>
+<script src="get_param.cgi"></script>
+<script type="text/javascript" src="jquery/jquery.min.js"></script>
+<script type="text/javascript" src="public.js"></script>
+<script src="appver.js"></script>
+<script>
+function set_quality(qualityp){
+	switch(qualityp)
+	{
+	case "1":
+	  $("#quality").val(1); 
+	  break;
+	case "2":
+	  $("#quality").val(2); 
+	  break;
+	case "3":
+	  $("#quality").val(3); 
+	  break;
+	case "4":
+	  $("#quality").val(4); 
+	  break;
+	case "5":
+	  $("#quality").val(5); 
+	  break;    
+	default:
+	  $("#quality").val(0); 
+	}
+}
+function set_rc_mode(rc_modep){
+	switch(rc_modep){
+	case "1":
+	  $("#rc_mode").val(1); 
+	  break;
+	default:
+		$("#rc_mode").val(0);
+	}
+}
+function channel_cookie()
+{
+	var vchannel=$("#channel_set").val();	
+	setcookie('vchannel',vchannel,720);
+	set_channel(vchannel);
+}
+function set_channel(channelp)
+{
+	if(channelp==1){
+		$("#fmt").val(fmt1);
+		$("#frame_rate").val(frame_rate1);
+		$("#level").val(level1);
+		$("#gop_size").val(gop_size1);
+		$("#profile").val(profile1);
+		set_quality(quality1);
+		$("#qp_init").val(qp_init1);
+		$("#qpstep").val(qpstep1);
+		$("#qp_min").val(qp_min1);
+		$("#qp_max").val(qp_max1);
+		set_rc_mode(rc_mode1);
+		$("#width").val(width1);
+		$("#height").val(height1);
+		$("#bit_rate").val(bit_rate1);		
+	}
+	else if(channelp==2){
+		$("#fmt").val(fmt2);
+		$("#frame_rate").val(frame_rate2);
+		$("#level").val(level2);
+		$("#gop_size").val(gop_size2);
+		$("#profile").val(profile2);
+		set_quality(quality2);
+		$("#qp_init").val(qp_init2);
+		$("#qpstep").val(qpstep2);
+		$("#qp_min").val(qp_min2);
+		$("#qp_max").val(qp_max2);
+		set_rc_mode(rc_mode2);
+		$("#width").val(width2);
+		$("#height").val(height2);
+		$("#bit_rate").val(bit_rate2);	
+	}			
+	else {
+		$("#fmt").val(fmt0);
+		$("#frame_rate").val(frame_rate0);
+		$("#level").val(level0);
+		$("#gop_size").val(gop_size0);
+		$("#profile").val(profile0);
+		set_quality(quality0);
+		$("#qp_init").val(qp_init0);
+		$("#qpstep").val(qpstep0);
+		$("#qp_min").val(qp_min0);
+		$("#qp_max").val(qp_max0);
+		set_rc_mode(rc_mode0);
+		$("#width").val(width0);
+		$("#height").val(height0);
+		$("#bit_rate").val(bit_rate0);	
+	}	
+}
+function set_bstr()
+{
+var url;
+url='set_param.cgi?next_url=bstr.htm';
+url+='&group_tag=video_param';
+url+='&stream_chan='+encodeURIComponent($("#channel_set").val());
+url+='&fmt='+encodeURIComponent($("#fmt").val());
+url+='&frame_rate='+encodeURIComponent($("#frame_rate").val());
+url+='&level='+encodeURIComponent($("#level").val());
+url+='&gop_size='+encodeURIComponent($("#gop_size").val());
+url+='&profile='+encodeURIComponent($("#profile").val());
+url+='&quality='+encodeURIComponent($("#quality").val());
+url+='&qp_init='+encodeURIComponent($("#qp_init").val());
+url+='&qpstep='+encodeURIComponent($("#qpstep").val());
+url+='&qp_min='+encodeURIComponent($("#qp_min").val());
+url+='&qp_max='+encodeURIComponent($("#qp_max").val());
+url+='&rc_mode='+encodeURIComponent($("#rc_mode").val());
+url+='&width='+encodeURIComponent($("#width").val());
+url+='&height='+encodeURIComponent($("#height").val());
+url+='&bit_rate='+encodeURIComponent($("#bit_rate").val());
+$.getScript(url);
+url='get_param.cgi?next_url=bstr.htm';
+url+='&group_tag=video_param';
+$.getScript(url);
+}
+function body_onload()
+{
+	var vlc=document.getElementById("vlc");
+	//添加播放列表
+	var itemId= vlc.playlist.add("rtsp://"+ip+"/webcam");
+	vlc.playlist.play();
+	var vchannel = getcookie('vchannel');
+	$("#channel_set").val(vchannel);
+	set_channel(vchannel);
+}
+</script>
+</head>
+<body  onLoad="body_onload()">
+<OBJECT classid="clsid:9BE31822-FDAD-461B-AD51-BE1D1C159921"
+    codebase="http://downloads.videolan.org/pub/videolan/vlc/latest/win32/axvlc.cab"
+       width="640" height="480" align="right" id="vlc" events="True">
+ <!--<param name="Src" value="http://video-js.zencoder.com/oceans-clip.mp4" />-->
+ <!--<param name="Src" value="http://live.3gv.ifeng.com/live/CCTV13.m3u8" />-->
+ <!--<param name="Src" value="rtmp://live.hkstv.hk.lxdns.com/live/hks" />-->
+ <!--<param name="Src" value="mmst://media.shtv.net.cn/shtv" />-->
+ <param name="Src" value="" />
+ <param name="ShowDisplay" value="True" />
+ <param name="AutoLoop" value="False" />
+ <param name="AutoPlay" value="True" />
+ </OBJECT>
+<table width="640" height="480">
+<tr height="25"><td class="v1 p2"><table width="100%" class="v2 f14 md1">
+<tr height="25"><td colspan="2" class="h1 v2 md2 f16"><strong>&nbsp;&nbsp;bit_stream</strong></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;fmt </td><td class="md2" >&nbsp;&nbsp;<input id="fmt" maxlength="64"></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;frame_rate </td><td  class="md2" >&nbsp;&nbsp;<input id="frame_rate" maxlength="64"></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;level </td><td class="md2" >&nbsp;&nbsp;<input id="level" maxlength="64"></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;gop_size </td><td  class="md2" >&nbsp;&nbsp;<input id="gop_size" maxlength="64"></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;profile</td><td class="md2" >&nbsp;&nbsp;<input id="profile" maxlength="64"></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;quality</td><td class="md2">&nbsp;&nbsp;<select id="quality" >
+  <option value="0"> MPP_ENC_RC_QUALITY_WORST</option>
+  <option value="1">MPP_ENC_RC_QUALITY_WORSE</option>
+  <option value="2">MPP_ENC_RC_QUALITY_MEDIUM</option>
+  <option value="3">MPP_ENC_RC_QUALITY_BETTER</option>
+  <option value="4">MPP_ENC_RC_QUALITY_BEST</option>
+  <option value="5">MPP_ENC_RC_QUALITY_CQP</option>
+  </select>
+</td>
+</tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;qp_init </td><td class="md2" >&nbsp;&nbsp;<input id="qp_init" maxlength="64"></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;qpstep </td><td class="md2" >&nbsp;&nbsp;<input id="qpstep" maxlength="64"></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;qp_min </td><td class="md2" >&nbsp;&nbsp;<input id="qp_min" maxlength="64"></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;qp_max </td><td class="md2" >&nbsp;&nbsp;<input id="qp_max" maxlength="64"></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;rc_mode</td><td class="md2">&nbsp;&nbsp;<select id="rc_mode" >
+  <option value="0">MPP_ENC_RC_MODE_VBR</option>
+  <option value="1">MPP_ENC_RC_MODE_CBR</option>
+  </select>
+</td>
+</tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;width </td><td class="md2" >&nbsp;&nbsp;<input id="width" maxlength="64"></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;height </td><td class="md2"  >&nbsp;&nbsp;<input id="height" maxlength="64"></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;bit_rate(kb) </td><td class="md2" >&nbsp;&nbsp;<input id="bit_rate" maxlength="64"></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;channel</td><td class="md2">&nbsp;&nbsp;<select id="channel_set" onChange="javascript:channel_cookie()">
+  <option value="0">channel1</option>
+  <option value="1">channel2</option>
+  <option value="2">channel3</option>
+  </select>
+</td>
+</tr>
+<tr height="25">
+  <td colspan="2" class="md3" align="center"><button id="set" onClick="set_bstr()"> <script>document.write(_set);</script> </button>
+&nbsp;&nbsp;&nbsp;&nbsp;
+<button id="reload" onClick="location.reload()"> <script>document.write(_refresh);</script> </button></td></tr>
+</table></td>
+</tr>
+</table>
+</body>
+</html>
+<script type="text/javascript" src="rowscolor.js"></script>

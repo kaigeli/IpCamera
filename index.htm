@@ -1,0 +1,136 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="style.css" type="text/css">
+<title></title>
+<style type="text/css">
+<!--
+body {
+	margin-left: 0px;
+	margin-top: 0px;
+}
+.style1 {
+	color: #EBEBEB;
+	font-size: 36px;
+	font-weight: bold;
+}
+-->
+</style>
+<script src="public.js"></script>
+</head>
+<script>
+var reboot_seconds=40;
+function setUline(unValue){
+  unValue.style.textDecoration='underline';
+  unValue.style.cursor='pointer';
+}
+
+function delUline(unValue){
+  unValue.style.textDecoration='none';
+}
+function openset(i){
+	var wdiv;
+	wdiv=i;
+	for(var i=1;i<=4;i++){
+		document.getElementById("table"+i).style.display="none";
+	}
+	if(document.getElementById("table"+wdiv).style.display!="")
+	document.getElementById("table"+wdiv).style.display="";
+	else
+	document.getElementById("table"+wdiv).style.display="none";
+}
+function showpage(szpage)
+{
+	main.location=szpage;
+}
+function onbody_load()
+{
+}
+</script>
+<body onLoad="onbody_load()" onContextMenu="return false">
+<table width="100%" height="62" border="0" cellPadding="0" cellSpacing="0" bgcolor="#333333">
+ <tr>
+  <td bordercolor="0" class="style1"> &nbsp;&nbsp;
+   <script>document.write(_options);</script></td>
+ </tr>
+</table>
+<table width="100%" border="0" cellPadding="0" cellSpacing="0">
+ <tr>
+  <td height="3" bgcolor="#0055aa"></td>
+ </tr>
+</table>
+<table width="100%" height="100%" border="0">
+  <tr>
+    <td width="200" height="480" valign="top" bgcolor="#333333">
+<div><table align="center" width="190" border="0" cellspacing="0" cellpadding="2"><tr><td><img src="images/space.gif"/></td></tr></table></div>
+<div id="div1" onClick="openset(1);"><table align="center" width="190" border="0" cellspacing="0" cellpadding="2" onMouseOver="setUline(this)" onMouseOut="delUline(this)" class="global_navigator_level1">
+<tr><td width="25"><img hspace="2" src="images/network.gif"/></td>
+<td width="127" height="23"><script>document.write(_ip_config)</script></td></tr></table><table align="center" width="190" border="0" cellspacing="0" cellpadding="2"><tr><td><img src="images/space.gif"/></td></tr></table></div>
+<div id="table1" style="display:none"><table align="center" width="190" border="0" cellspacing="0" cellpadding="2" class="global_navigator_level2">
+<tr><td width="25" height="20" align="right"><img src="images/2_item.gif"/></td><td onClick="showpage('ip.htm')" onMouseOver="setUline(this)" onMouseOut="delUline(this)">&nbsp;<script>document.write(_network_config)</script></td></tr>
+<tr bgcolor="#0055AA"><td colspan="2"><img src="images/space.gif"/></td></tr>
+<tr><td width="25" height="20" align="right"><img src="images/2_item.gif"/></td><td onClick="showpage('wireless.htm')" onMouseOver="setUline(this)" onMouseOut="delUline(this)">&nbsp;<script>document.write(_wireless_config)</script></td></tr>
+<tr bgcolor="#0055AA"><td colspan="2"><img src="images/space.gif"/></td></tr>
+<tr><td width="25" height="20" align="right"><img src="images/2_item.gif"/></td><td onClick="showpage('upnp.htm')" onMouseOver="setUline(this)" onMouseOut="delUline(this)">&nbsp;<script>document.write(_upnp_config)</script></td></tr>
+<tr bgcolor="#0055AA"><td colspan="2"><img src="images/space.gif"/></td></tr>
+<tr><td width="25" height="20" align="right"><img src="images/2_item.gif"/></td><td onClick="showpage('ddns.htm')" onMouseOver="setUline(this)" onMouseOut="delUline(this)">&nbsp;<script>document.write(_ddns_config)</script></td></tr>
+<tr bgcolor="#0055AA"><td colspan="2"><img src="images/space.gif"/></td></tr>
+</table></div>
+
+<div id="div2" onClick="openset(2);"><table align="center" width="190" border="0" cellspacing="0" cellpadding="2" onMouseOver="setUline(this)" onMouseOut="delUline(this)" class="global_navigator_level1">
+<tr><td width="25"><img hspace="2" src="images/alert.gif" width="22" height="22"/></td>
+<td width="127" height="23"><script>document.write(_alarm_config)</script></td></tr></table><table align="center" width="190" border="0" cellspacing="0" cellpadding="2"><tr><td><img src="images/space.gif"/></td></tr></table></div>
+<div id="table2" style="display:none"><table align="center" width="190" border="0" cellspacing="0" cellpadding="2" class="global_navigator_level2">
+<tr><td width="25" height="20" align="right"><img src="images/2_item.gif"/></td><td onClick="showpage('alarm.htm')" onMouseOver="setUline(this)" onMouseOut="delUline(this)">&nbsp;<script>document.write(_alarm_config)</script></td></tr>
+<tr bgcolor="#0055AA"><td colspan="2"><img src="images/space.gif"/></td></tr>
+<tr><td width="25" height="20" align="right"><img src="images/2_item.gif"/></td><td onClick="showpage('mail.htm')" onMouseOver="setUline(this)" onMouseOut="delUline(this)">&nbsp;<script>document.write(_mail_config)</script></td></tr>
+<tr bgcolor="#0055AA"><td colspan="2"><img src="images/space.gif"/></td></tr>
+<tr><td width="25" height="20" align="right"><img src="images/2_item.gif"/></td><td onClick="showpage('ftp.htm')" onMouseOver="setUline(this)" onMouseOut="delUline(this)">&nbsp;<script>document.write(_ftp_config)</script></td></tr>
+<tr bgcolor="#0055AA"><td colspan="2"><img src="images/space.gif"/></td></tr>
+</table></div>
+
+<div id="div4" onClick="openset(3);"><table align="center" width="190" border="0" cellspacing="0" cellpadding="2" onMouseOver="setUline(this)" onMouseOut="delUline(this)" class="global_navigator_level1">
+<tr><td width="25"><img hspace="2" src="images/record.gif" width="22" height="22"/></td>
+<td width="127" height="23"><script>document.write(_videorecord)</script></td></tr></table><table align="center" width="190" border="0" cellspacing="0" cellpadding="2"><tr><td><img src="images/space.gif"/></td></tr></table></div>
+<div id="table3" style="display:none"><table align="center" width="190" border="0" cellspacing="0" cellpadding="2" class="global_navigator_level2">
+<tr><td width="25" height="20" align="right"><img src="images/2_item.gif"/></td><td onClick="showpage('recordsch.htm')" onMouseOver="setUline(this)" onMouseOut="delUline(this)">&nbsp;<script>document.write(_record_sch)</script></td></tr>
+<tr bgcolor="#0055AA"><td colspan="2"><img src="images/space.gif"/></td></tr>
+</table></div>
+
+<div id="div3" onClick="openset(4);"><table align="center" width="190" border="0" cellspacing="0" cellpadding="2" onMouseOver="setUline(this)" onMouseOut="delUline(this)" class="global_navigator_level1">
+<tr><td width="25"><img hspace="2" src="images/option.gif" width="22" height="22"/></td>
+<td width="127" height="23"><script>document.write(_syscfg)</script></td></tr></table></div>
+<div id="table4" style="display:none"><table align="center" width="190" border="0" cellspacing="0" cellpadding="2" class="global_navigator_level2">
+<tr><td width="25" height="20" align="right"><img src="images/2_item.gif"/></td><td onClick="showpage('status.htm')" onMouseOver="setUline(this)" onMouseOut="delUline(this)">&nbsp;<script>document.write(_dev_info)</script></td></tr>
+<tr bgcolor="#0055AA"><td colspan="2"><img src="images/space.gif"/></td></tr>
+<tr><td width="25" height="20" align="right"><img src="images/2_item.gif"/></td><td onClick="showpage('video_param.htm')" onMouseOver="setUline(this)" onMouseOut="delUline(this)">&nbsp;<script>document.write(_bstr_info)</script></td></tr>
+<tr bgcolor="#0055AA"><td colspan="2"><img src="images/space.gif"/></td></tr>
+<tr id="tbalias"><td width="25" height="20" align="right"><img src="images/2_item.gif"/></td><td onClick="showpage('alias.htm')" onMouseOver="setUline(this)" onMouseOut="delUline(this)">&nbsp;<script>document.write(_alias_config)</script></td></tr>
+<tr bgcolor="#0055AA"><td colspan="2"><img src="images/space.gif"/></td></tr>
+<tr id="tbdatetime"><td width="25" height="20" align="right"><img src="images/2_item.gif"/></td><td onClick="showpage('datetime.htm')" onMouseOver="setUline(this)" onMouseOut="delUline(this)">&nbsp;<script>document.write(_datetime_config)</script></td></tr>
+<tr bgcolor="#0055AA"><td colspan="2"><img src="images/space.gif"/></td></tr>
+<tr><td width="25" height="20" align="right"><img src="images/2_item.gif"/></td><td onClick="showpage('user.htm')" onMouseOver="setUline(this)" onMouseOut="delUline(this)">&nbsp;<script>document.write(_users_config)</script></td></tr>
+<tr bgcolor="#0055AA"><td colspan="2"><img src="images/space.gif"/></td></tr>
+<tr><td width="25" height="20" align="right"><img src="images/2_item.gif"/></td><td onClick="showpage('multidev2.htm')" onMouseOver="setUline(this)" onMouseOut="delUline(this)">&nbsp;<script>document.write(_multidevice_config)</script></td></tr>
+<tr bgcolor="#0055AA"><td colspan="2"><img src="images/space.gif"/></td></tr>
+<tr><td width="25" height="20" align="right"><img src="images/2_item.gif"/></td><td onClick="showpage('ptz.htm')" onMouseOver="setUline(this)" onMouseOut="delUline(this)">&nbsp;<script>document.write(_ptz_config)</script></td></tr>
+<tr bgcolor="#0055AA"><td colspan="2"><img src="images/space.gif"/></td></tr>
+<tr><td width="25" height="20" align="right"><img src="images/2_item.gif"/></td><td onClick="showpage('log.htm')" onMouseOver="setUline(this)" onMouseOut="delUline(this)">&nbsp;<script>document.write(_log)</script></td></tr>
+<tr bgcolor="#0055AA"><td colspan="2"><img src="images/space.gif"/></td></tr>
+<tr><td width="25" height="20" align="right"><img src="images/2_item.gif"/></td><td onClick="showpage('upgrade.htm')" onMouseOver="setUline(this)" onMouseOut="delUline(this)">&nbsp;<script>document.write(_mantain)</script></td></tr>
+<tr bgcolor="#0055AA"><td colspan="2"><img src="images/space.gif"/></td></tr>
+</table></div>
+<table width="190" border="0" cellpadding="0" cellspacing="2">
+  <tr>
+    <td bordercolor="0" width="25"><img src="images/back.gif"></td>
+    <td valign="middle" bordercolor="0"><a href="monitor.htm" target="_self" class="fw link1"><strong><script>document.write(_goback);</script></strong></a></td>
+  </tr>
+</table>
+</p>
+</td>
+    <td width="100%" height="480" valign="top">
+ 	<iframe marginheight="0" marginwidth="0" width="100%" height="680" frameborder="0" scrolling="no" id="main" name="main" src="status.htm"></iframe>    </td>
+  </tr>
+</table>
+</body>
+</html>

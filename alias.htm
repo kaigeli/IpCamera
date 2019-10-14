@@ -1,0 +1,54 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title></title>
+<script src="get_param.cgi"></script>
+<script type="text/javascript" src="jquery/jquery.min.js"></script>
+<script type="text/javascript" src="public.js"></script>
+<link rel="stylesheet" href="style.css" type="text/css">
+<script>
+if (alias=='') 
+	alias=_anonymous;
+else
+	alias=alias;
+setDocTitle(_device+'('+alias+')');
+function change_name()
+{
+//if($("#alias_input").val()=='')
+//{
+//	alert(_not_null);
+//	$("#alias_input").focus();
+//	return;
+//}
+
+//http://192.168.1.103:81/set_alias.cgi?alias=111&next_url=alias.htm&loginuse=admin&loginpas=
+var url='set_param.cgi?device_name='+encodeURIComponent($("#alias_input").val())+'&next_url=alias.htm';
+location= url;
+}
+function body_onload()
+{
+$("#alias_input").val(device_name);
+}
+
+</script>
+</head>
+<body onLoad="body_onload()">
+<table width="640" height="480">
+<tr height="25"><td class="v1 p2"><table width="100%" class="v2 f14 md1">
+<tr height="25"><td colspan="2" class="h1 v2 md2 f16"><strong><script>document.write(_alias_config);</script></strong></td></tr>
+<tr height="25"><td width="30%" class="md4">&nbsp;&nbsp; <script>document.write(_alias);</script></td><td class="md2">&nbsp;&nbsp;<input id="alias_input" maxlength="24" size="25"></td></tr>
+<tr height="25">
+  <td colspan="2" class="md3" align="center"><button id="set" onClick="change_name()"> <script>document.write(_set);</script> </button>
+&nbsp;&nbsp;&nbsp;&nbsp;
+<button id="reload" onClick="location.reload()"> <script>document.write(_refresh);</script> </button></td></tr>
+</table></td>
+</tr>
+</table>
+</body>
+</html>
+<script>
+removeSelfClass();$("#dd-alias", parent.document).addClass("selected");
+if(pri != 255)  
+$("#set").hide();
+</script>
+<script type="text/javascript" src="rowscolor.js"></script>

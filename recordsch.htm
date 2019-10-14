@@ -1,0 +1,369 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title></title>
+<script src="get_param.cgi"></script>
+<script type="text/javascript" src="jquery/jquery.min.js"></script>
+<script type="text/javascript" src="public.js"></script>
+<link rel="stylesheet" href="style.css" type="text/css">
+<script>
+var select_flag = 1;
+
+function set_alarm()
+{
+	var url;
+	url='set_recordsch.cgi?next_url=recordsch.htm';
+	url+='&loginuse='+loginuser+'&loginpas='+encodeURIComponent(loginpass);
+	url+='&record_cover=1';
+	url+='&record_timer=15';
+	url+='&record_audio='+(($("#record_audio").attr("checked")=="checked")?1:0);
+	url+='&record_chnl='+$("#record_st").val();
+	url+='&time_schedule_enable='+(($("#time_schedule_enable").attr("checked")=="checked")?1:0);
+	url+='&schedule_sun_0='+make_schedule_val(0,0)+'&schedule_sun_1='+make_schedule_val(0,1)+'&schedule_sun_2='+make_schedule_val(0,2)+'&schedule_mon_0='+make_schedule_val(1,0)+'&schedule_mon_1='+make_schedule_val(1,1)+'&schedule_mon_2='+make_schedule_val(1,2)+'&schedule_tue_0='+make_schedule_val(2,0)+'&schedule_tue_1='+make_schedule_val(2,1)+'&schedule_tue_2='+make_schedule_val(2,2)+'&schedule_wed_0='+make_schedule_val(3,0)+'&schedule_wed_1='+make_schedule_val(3,1)+'&schedule_wed_2='+make_schedule_val(3,2)+'&schedule_thu_0='+make_schedule_val(4,0)+'&schedule_thu_1='+make_schedule_val(4,1)+'&schedule_thu_2='+make_schedule_val(4,2)+'&schedule_fri_0='+make_schedule_val(5,0)+'&schedule_fri_1='+make_schedule_val(5,1)+'&schedule_fri_2='+make_schedule_val(5,2)+'&schedule_sat_0='+make_schedule_val(6,0)+'&schedule_sat_1='+make_schedule_val(6,1)+'&schedule_sat_2='+make_schedule_val(6,2);
+	
+	//alert(url);
+	location=encodeURI(url);
+}
+function set_format()
+{
+	if(confirm(_confirmfmtSD)){
+		var url;
+		url='set_formatsd.cgi?next_url=recordsch.htm';
+		url+='&loginuse='+loginuser+'&loginpas='+encodeURIComponent(loginpass);
+		location=encodeURI(url);
+	}
+}
+
+function schedule_select()
+{
+	($("#time_schedule_enable").attr("checked")=="checked")?$("#tr_select_all").show():$("#tr_select_all").hide();
+	($("#time_schedule_enable").attr("checked")=="checked")?$("#tr_schedule").show():$("#tr_schedule").hide();
+}
+
+
+function parse_schedule_val(val,day,num)
+{
+id='schedule_'+day;
+num*=32;
+for(i=0;i<32;i++)
+{
+h=Math.floor(num/4);
+q=num%4;
+var schedule = id+'_'+h+'_'+q;
+
+if ((val>>i)&1)
+{
+$("#"+schedule).css("background-color","rgb(71, 145, 197)");
+}
+else
+{
+$("#"+schedule).css("background-color","");
+select_flag = 0;
+}
+
+
+num++;
+}
+}
+
+function isCellSel(clr)
+{
+		return (clr=="rgb(71, 145, 197)" || clr=="rgb(71,145,197)");
+}
+
+var ua = navigator.userAgent.toLowerCase();
+var isIE = ua.indexOf('msie') >= 0?true:false;
+function make_schedule_val(day,num)
+{
+	if (!($("#time_schedule_enable").attr("checked")=="checked")) return 0;
+	id='schedule_'+day;
+	num*=32;
+	val=0;
+	for(i=0;i<32;i++)
+	{
+		h=Math.floor(num/4);
+		q=num%4;
+		var schedule = id+'_'+h+'_'+q;
+		val|=(isCellSel($("#"+schedule).css("background-color"))?(1<<i):0);
+		
+		num++;
+	}
+	return val;
+}
+
+var _selallcheck=true;
+function SelectAll()
+{
+	for(i=0;i<7;i++){
+		for(j=0;j<24;j++){
+			for(m=0;m<4;m++){
+				var obj=document.getElementById('schedule_'+i+'_'+j+'_'+m);
+				if(_selallcheck)
+					obj.style.backgroundColor='rgb(71, 145, 197)';
+				else
+					obj.style.backgroundColor='';
+			}
+		}	
+	}
+	_selallcheck=!_selallcheck;
+}
+
+function body_onload()
+{
+	var Sdcard = SdcardInfo.split(",");
+	var record_sd_status=Sdcard[0];
+	var sdtotal=Sdcard[2];
+	var sdfree =Sdcard[1];
+//	$("#record_audio").attr("checked",record_audio?true:false);
+//	$("#time_schedule_enable").attr("checked",record_time_enable?true:false);
+//	$("#record_st").val(record_chnl);
+
+	if(record_sd_status == 2){
+		$("#record_sd_info").html("&nbsp;&nbsp;"+_sd_exist);//recording
+	}
+	else if(record_sd_status == 1){
+		$("#record_sd_info").html("&nbsp;&nbsp;"+_disk_4);// sd ready
+	}
+	else if(record_sd_status == 0) {
+		$("#record_sd_info").html("&nbsp;&nbsp;"+_disk_2);//stop record
+	}
+	else if(record_sd_status == 3){
+		$("#record_sd_info").html("&nbsp;&nbsp;"+_disk_3);//no formate sd
+		}
+	else if(record_sd_status == 4){
+		$("#record_sd_info").html("&nbsp;&nbsp;"+_disk_5);//formate sd
+		}
+	else if(record_sd_status == 5){
+		$("#record_sd_info").html("&nbsp;&nbsp;"+_disk_6);//remove sd
+		}
+	else{
+		
+	}
+				
+	$("#str_sd_sdtotal_td").html("&nbsp;&nbsp;"+sdtotal+"&nbsp;M");
+	$("#str_sd_sdfree_td").html("&nbsp;&nbsp;"+sdfree+"&nbsp;M");
+	
+	
+	parse_schedule_val(record_schedule_sun_0,0,0);
+	parse_schedule_val(record_schedule_sun_1,0,1);
+	parse_schedule_val(record_schedule_sun_2,0,2);
+	parse_schedule_val(record_schedule_mon_0,1,0);
+	parse_schedule_val(record_schedule_mon_1,1,1);
+	parse_schedule_val(record_schedule_mon_2,1,2);
+	parse_schedule_val(record_schedule_tue_0,2,0);
+	parse_schedule_val(record_schedule_tue_1,2,1);
+	parse_schedule_val(record_schedule_tue_2,2,2);
+	parse_schedule_val(record_schedule_wed_0,3,0);
+	parse_schedule_val(record_schedule_wed_1,3,1);
+	parse_schedule_val(record_schedule_wed_2,3,2);
+	parse_schedule_val(record_schedule_thu_0,4,0);
+	parse_schedule_val(record_schedule_thu_1,4,1);
+	parse_schedule_val(record_schedule_thu_2,4,2);
+	parse_schedule_val(record_schedule_fri_0,5,0);
+	parse_schedule_val(record_schedule_fri_1,5,1);
+	parse_schedule_val(record_schedule_fri_2,5,2);
+	parse_schedule_val(record_schedule_sat_0,6,0);
+	parse_schedule_val(record_schedule_sat_1,6,1);
+	parse_schedule_val(record_schedule_sat_2,6,2);
+//	$("#select_all").attr("checked",select_flag?true:false);
+//	schedule_select();
+
+}
+</script>
+</head>
+<body onLoad="body_onload()">
+	<table width="800" height="480">
+<tr height="25"><td class="v1 p2"><table width="100%" class="v2 f14 md1">
+<tr height="25"><td colspan="2" class="h1 v2 md2 f16"><strong><script>document.write(_record_schdule);</script></strong></td></tr>
+<tr height="25"><td width="40%" class="md4">&nbsp;&nbsp;<script>document.write(_sd_sdtotal);</script></td><td id="str_sd_sdtotal_td" class="md2">&nbsp;&nbsp;</td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;<script>document.write(_sd_sdfree);</script></td><td id="str_sd_sdfree_td" class="md2">&nbsp;&nbsp;</td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;<script>document.write(_record_sd_status);</script></td><td class="md2"><span id="record_sd_info"></span>&nbsp;&nbsp;<span><button id="diskformat" onClick="set_format()"><script>document.write(_disk_1);</script></button></span></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;<script>document.write(_record_audio);</script></td><td class="md2">&nbsp;&nbsp;<input type="checkbox" id="record_audio"></td></tr>
+<tr height="25" style="display:none"><td class="md4">&nbsp;&nbsp;<script>document.write(_record_sensitivity);</script></td><td class="md2">&nbsp;&nbsp;
+      <select id="record_ss">
+<option value="0"><script>document.write(_record_ss_0)</script></option>
+<option value="1"><script>document.write(_record_ss_1)</script></option>
+<option value="2"><script>document.write(_record_ss_2)</script></option>
+<option value="3"><script>document.write(_record_ss_3)</script></option>
+<option value="4"><script>document.write(_record_ss_4)</script></option>
+<option value="5"><script>document.write(_record_ss_5)</script></option>
+<option value="6"><script>document.write(_record_ss_6)</script></option>
+<option value="7"><script>document.write(_record_ss_7)</script></option>
+<option value="8"><script>document.write(_record_ss_8)</script></option>
+<option value="9"><script>document.write(_record_ss_9)</script></option>
+<option value="10"><script>document.write(_record_ss_10)</script></option>
+</select>&nbsp;&nbsp;<span class=tipf><script>document.write(_moresmorelm);</script></span></td>
+</tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;<script>document.write(_record_stream);</script></td><td class="md2">&nbsp;&nbsp;
+  <select id="record_st">
+    <option value="0">FHD(1920X1080)</option>
+    <option value="1">HD(1280x720)</option>
+    <option value="2">VGA(640x360)</option>
+  </select>
+</td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;<script>document.write(_record_alarm_time);</script></td><td class="md2">&nbsp;&nbsp;<input id="time_schedule_enable" type="checkbox" onClick="schedule_select()"></td></tr>
+<tr id="tr_schedule" height="25">
+	<td  colspan="2" class="md4"><table class="selectTable" width="100%" border=1>
+		<tr> 
+<script>
+document.write('<td>'+_day+'<\/td>');
+var cc_day=new Array();
+cc_day[0]=_sun;
+cc_day[1]=_mon;
+cc_day[2]=_tue;
+cc_day[3]=_wed;
+cc_day[4]=_thu;
+cc_day[5]=_fri;
+cc_day[6]=_sat;
+
+for(i=0;i<24;i++) document.write('<td colspan=4>'+i+'<\/td>');
+</script> 
+</tr>
+<script>
+
+function set_schedule(id,dbl)
+{
+var id_head=id.substring(0,id.lastIndexOf('_'));
+var ua = navigator.userAgent.toLowerCase();
+var isIE = ua.indexOf('msie') >= 0?true:false;
+
+if (isCellSel( $("#"+id).css("background-color")))
+{
+if (dbl)
+{
+for (i=0;i<4;i++)
+{
+//alert("1111");
+var schedule=id_head+'_'+i;
+if(isIE)
+$("#"+schedule).css("background-color","rgb(71, 145, 197)");
+else
+$("#"+schedule).css("background-color","");
+}
+}
+else{
+$("#"+id).css("background-color","");
+}
+
+}	
+else
+{
+if (dbl==1)
+{
+for (i=0;i<4;i++)
+{
+var schedule=id_head+'_'+i;
+if(isIE)
+$("#"+schedule).css("background-color","");
+else
+$("#"+schedule).css("background-color","rgb(71, 145, 197)");
+}
+}
+else{
+$("#"+id).css("background-color","rgb(71, 145, 197)");
+}
+}
+}
+for (i=0;i<7;i++)
+{
+document.write('<tr><td width=60>'+cc_day[i]+'<\/td>');
+for(j=0;j<24;j++) for(m=0;m<4;m++)document.write('<td onmousedown=\"startsel('+i+','+j+','+m+')\" onmouseup=\"endsel('+i+','+j+','+m+')\" onmouseover=\"movesel('+i+','+j+','+m+')\"  onMouseOut=\"showemptyhint()\"  width=4 id=\"schedule_'+i+'_'+j+'_'+m+'\"> <\/td>');
+document.write('<\/tr>');
+} 
+function showemptyhint()
+{
+	timehint.innerText="";
+}
+function showtimehint(nday,nhour,nMin)
+{	
+	if(nMin==3)
+		timehint.innerText=cc_day[g_start_day]+" " + g_start_hour + ":" + g_start_min*15 + ":00~"+String(nhour+1)+":00:00";
+	else
+		timehint.innerText=cc_day[g_start_day]+" " + g_start_hour + ":" + g_start_min*15 + ":00~"+nhour+":"+ String(nMin*15+15)+":00";
+}
+var g_seling=false,g_start_day,g_start_hour,g_start_min,g_start_sel;
+var g_oldsel=new Array();
+
+function startsel(nday,nhour,nMin)
+{
+	g_seling=!g_seling;
+	if(!g_seling)
+		return;
+	g_start_day=nday;
+	g_start_hour=nhour;
+	g_start_min=nMin;
+	
+	var obj=document.getElementById('schedule_'+nday+'_'+nhour+'_'+nMin);
+	g_start_sel=obj.style.backgroundColor!='';
+	for(i=0;i<24;i++){
+		g_oldsel[i]=new Array();  
+		for(j=0;j<4;j++){
+			var obj=document.getElementById('schedule_'+nday+'_'+i+'_'+j);
+			g_oldsel[i][j]=obj.style.backgroundColor;
+		}
+	}
+	movesel(nday,nhour,nMin);
+}
+function movesel(nday,nhour,nMin)
+{	
+	if(!g_seling)
+		return;
+	if(g_start_day!=nday)
+		return;
+	for(i=0;i<24;i++){
+		for(j=0;j<4;j++){
+			var obj=document.getElementById('schedule_'+nday+'_'+i+'_'+j);
+			obj.style.backgroundColor=g_oldsel[i][j];
+		}
+	}		
+	var nendmin;
+	for(i=g_start_hour;i<=nhour;i++){
+		if(i==g_start_hour)
+			j=g_start_min;
+		else
+			j=0;
+		if(i==nhour)
+			nendmin=nMin+1;
+		else
+			nendmin=4;
+		for (;j<nendmin;j++){
+			var obj=document.getElementById('schedule_'+nday+'_'+i+'_'+String(j));
+			if(g_start_sel)
+				obj.style.backgroundColor='';
+			else
+				obj.style.backgroundColor='rgb(71, 145, 197)';
+		}		
+	}
+	showtimehint(nday,nhour,nMin);
+}
+function endsel(nday,nhour,nMin)
+{
+	return;
+	if(!g_seling)
+		return;
+	movesel(nday,nhour,nMin);
+	g_start_day=-1;	
+}
+</script>
+<tr><td colspan=97 align="left">&nbsp;&nbsp;&nbsp;&nbsp;<button onClick="SelectAll()">
+	<script>document.write(_selall)</script></button>&nbsp;&nbsp;&nbsp;&nbsp;<span id=timehint class=f14></span></td></tr>
+<tr><td colspan=97 align="left">&nbsp;&nbsp;&nbsp;&nbsp;<span class=tipf><script>document.write(_alarmtime)</script></span></td></tr>
+      </table></td>
+  </tr>
+  <tr height="25">
+    <td colspan="2" class="md3" align="center"><button id="set" onClick="set_alarm()"><script>document.write(_set);</script></button>
+      &nbsp;&nbsp;&nbsp;&nbsp;
+      <button onClick="location.reload()"><script>document.write(_refresh);</script></button></td>
+  </tr>
+</table>
+</td>
+</tr>
+</table>
+<script>
+removeSelfClass();$("#dd-recordsch", parent.document).addClass("selected");
+if(pri != 255)  
+$("#set").hide();
+</script>
+</body>
+</html>
+<script type="text/javascript" src="rowscolor.js"></script>

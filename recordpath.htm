@@ -1,0 +1,68 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title></title>
+<script src="get_status.cgi"></script>
+ 
+<script type="text/javascript" src="jquery/jquery.min.js"></script>
+<script type="text/javascript" src="public.js"></script>
+<link rel="stylesheet" href="style.css" type="text/css">
+<script>
+setDocTitle(_device+'('+alias+')');
+function body_onload()
+{
+$("#record_path").val(camsearch.RecFilePath);
+$("#selectpath").val(_recpath_sel);
+
+
+$("#record_FileLen").val(camsearch.RecFileLen);
+$("#record_TimeLen").val(camsearch.RecTimeLen);
+$("#record_reservedDiskSpace").val(camsearch.ReservedSpace);
+$("#rec_Cover").attr("checked",camsearch.RecCover?true:false);
+}
+function browseFolder(path)
+{
+camsearch.SetPath();
+$("#record_path").val(camsearch.RecFilePath);
+//location.reload();
+}
+function setPro()
+{
+	if($("#record_FileLen").val() == '') $("#record_FileLen").val(100);
+	if($("#record_TimeLen").val() == '') $("#record_TimeLen").val(5);
+	if($("#record_reservedDiskSpace").val() == '') $("#record_reservedDiskSpace").val(200);
+	if($("#record_FileLen").val() > 1000)  $("#record_FileLen").val(100);
+	if($("#record_TimeLen").val() > 120 ) $("#record_TimeLen").val(120);
+	
+	camsearch.SetRecordProperty($("#record_FileLen").val(),$("#record_TimeLen").val(),$("#record_reservedDiskSpace").val(),($("#rec_Cover").attr("checked")=="checked")?1:0);
+	location.reload();
+}
+</script>
+</head>
+<body onLoad="body_onload()">
+<table width="640" height="480">
+<tr height="25"><td class="v1 p2"><table width="100%" class="v2 f14 md1">
+<tr height="25"><td colspan="2" class="h1 v2 md2 f16"><strong><script>document.write(_localrecord);</script></strong></td></tr>
+<tr height="25"><td width="30%" class="md4">&nbsp;&nbsp; <script>document.write(_record_path);</script></td><td class="md2">&nbsp;&nbsp;
+<input id="record_path" size="48" readonly style="background:#CCC"/>
+<input type="button" onClick="browseFolder('record_path')" value="......" id='selectpath'/></td></tr>
+<tr height="25"><td width="30%" class="md4">&nbsp;&nbsp; <script>document.write(_rec_FileLen);</script></td><td class="md2">&nbsp;&nbsp; <input id="record_FileLen" maxlength="8" size="24" onKeyUp="value=value.replace(/[^\d]/g,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\d]/g,''))"/>&nbsp;&nbsp; <script>document.write(_rec_FileLen_1);</script></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp; <script>document.write(_rec_TimeLen);</script></td><td class="md2">&nbsp;&nbsp; <input id="record_TimeLen" maxlength="8" size="24" onKeyUp="value=value.replace(/[^\d]/g,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\d]/g,''))"/>&nbsp;&nbsp; <script>document.write(_rec_TimeLen_1);</script></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp; <script>document.write(_rec_reservedDiskSpace);</script></td><td class="md2">&nbsp;&nbsp; <input id="record_reservedDiskSpace"maxlength="8" size="24" onKeyUp="value=value.replace(/[^\d]/g,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\d]/g,''))"/>&nbsp;&nbsp; <script>document.write(_rec_reservedDiskSpace_1);</script></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp; <script>document.write(_rec_Cover);</script></td><td class="md2">&nbsp;&nbsp; <input type="checkbox" name="checkbox" id="rec_Cover"></td></tr>
+<tr height="25"><td colspan="2" class="md3" align="center"><button id="set" onClick="setPro()"> <script>document.write(_set);</script> </button>
+&nbsp;&nbsp;&nbsp;&nbsp;<button id="reload" onClick="location.reload()"> <script>document.write(_refresh);</script> </button></td></tr>
+</table>
+</td>
+</tr>
+</table>
+<OBJECT id="camsearch" height="0" width="0" classid="clsid:91D47772-CF16-44B1-95C0-AE6C91284640">
+</OBJECT>
+</body>
+</html>
+<script>
+removeSelfClass();$("#dd-recordpath", parent.document).addClass("selected");
+if(pri != 255)  
+$("#set").hide();
+</script>
+<script type="text/javascript" src="rowscolor.js"></script>

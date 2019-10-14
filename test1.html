@@ -1,0 +1,1069 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0036)http://172.16.14.222:81/monitor.htm -->
+<HTML><HEAD><TITLE></TITLE>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" href="jquery/jquery-ui-1.8.18.custom.css" type="text/css">
+<title></title>
+<STYLE type=text/css>BODY {
+	BACKGROUND-COLOR: #333333; MARGIN: 0px
+}
+.style2 {
+	FONT-SIZE: 12px
+}
+TD {
+	FONT-FAMILY: Arial
+}
+</STYLE>
+<style type="text/css">body {margin-left: 0px;margin-top: 0px;margin-right: 0px;margin-bottom: 0px; background-color:#333333}.style2 {font-size: 12px} td{font-family:Arial}</style>
+<script src="get_param.cgi"></script>
+<script type="text/javascript" src="jquery/jquery.min.js"></script>
+<script type="text/javascript" src="jquery/jquery-ui-1.8.18.custom.min.js"></script>
+<script type="text/javascript" src="public.js"></script>
+<link rel="stylesheet" href="style.css" type="text/css">
+<SCRIPT>
+//自定义字段
+var k=13;
+var j=6;
+var self_resolution=4;
+var screennw=window.screen.width;
+
+var current=0;//当前选中的控件索引
+var nDClick=0;//当前双击次数
+
+// 云台速度参数
+
+// 云台方向
+//var FWK_PROTOCOL_PTZ_CMD_STOP=0;
+var FWK_PROTOCOL_PTZ_CMD_UP=0;
+var FWK_PROTOCOL_PTZ_CMD_UP_STOP=1;
+var FWK_PROTOCOL_PTZ_CMD_DOWN=2;
+var FWK_PROTOCOL_PTZ_CMD_DOWN_STOP=3;
+var FWK_PROTOCOL_PTZ_CMD_LEFT=4;
+var FWK_PROTOCOL_PTZ_CMD_LEFT_STOP=5;
+var FWK_PROTOCOL_PTZ_CMD_RIGHT=6;
+var FWK_PROTOCOL_PTZ_CMD_RIGHT_STOP=7;
+var FWK_PROTOCOL_PTZ_CMD_LEFT_UP=90;
+var FWK_PROTOCOL_PTZ_CMD_RIGHT_UP=91;
+var FWK_PROTOCOL_PTZ_CMD_LEFT_DOWN=92;
+var FWK_PROTOCOL_PTZ_CMD_RIGHT_DOWN=93;
+var FWK_PROTOCOL_PTZ_CMD_STOP=1;
+
+var FWK_PROTOCOL_PTZ_CMD_CENTER=25;
+//上下/水平巡视
+var FWK_PROTOCOL_PTZ_CMD_VPATROL=26;
+var FWK_PROTOCOL_PTZ_CMD_VPATROL_STOP=27;
+var FWK_PROTOCOL_PTZ_CMD_HPATROL=28;
+var FWK_PROTOCOL_PTZ_CMD_HPATROL_STOP=29;
+
+var IO_ON=94;
+var IO_OFF=95;
+
+//var FWK_PROTOCOL_PTZ_CMD_PREFAB_BIT_SET=13;
+//var FWK_PROTOCOL_PTZ_CMD_PREFAB_BIT_DEL=14;
+//var FWK_PROTOCOL_PTZ_CMD_PREFAB_BIT_RUN=15;
+var n_vpatrol = new Array(); n_vpatrol[0]=n_vpatrol[1]=n_vpatrol[2]=n_vpatrol[3]=n_vpatrol[4]=n_vpatrol[5]=n_vpatrol[6]=n_vpatrol[7]=n_vpatrol[8]=0;
+var n_hpatrol = new Array(); n_hpatrol[0]=n_hpatrol[1]=n_hpatrol[2]=n_hpatrol[3]=n_hpatrol[4]=n_hpatrol[5]=n_hpatrol[6]=n_hpatrol[7]=n_hpatrol[8]=0;
+var cam_alarm=new Array();
+var cam_alarm_light=new Array();
+
+var Bits_HD=new Array(128,256,384,512,640,768,896,1024,1280,1536,1792,2048,2560,3072,3584,4096);
+var Bits_VGA=new Array(128,256,384,512,640,768,896,1024);
+var Bits_QVGA=new Array(128,256,384);
+
+function camera_control(param,value)
+{
+try{
+  var url = 'set_param.cgi?&group_tag=monitor&next_url=monitor';
+  url+='&param='+param+'&value='+value;
+  url+='&' + new Date().getTime() + Math.random();
+  //alert(url);
+  $.getScript(url,
+	function(){
+   if(param==0){
+     self_resolution=value;
+     if(value == 2){  //次码流
+	   	    maliu_id=81;
+			k=19;
+			j=12;
+	 }else if(value == 4){  //主码流
+	        maliu_id=80;
+			k=13;
+			j=6;
+	 }else if(value == 0){  //第三码流
+	 		maliu_id=82;
+			k=20;
+			j=17;
+			 }
+	 }
+   });
+	 //location.reload();
+}catch(exception){
+  return;
+  }
+}
+function setspeed(nValue){
+var n=nValue*2;
+var url = 'set_param.cgi?&group_tag=monitor&next_url=monitor';
+url += '&param=100&value='+n;
+//url=url+'&ptz_patrol_rate='+n+'&ptz_patrol_up_rate='+n+'&ptz_patrol_down_rate='+n+'&ptz_patrol_left_rate='+n+'&ptz_patrol_right_rate='+n;
+$.getScript(url);	
+ShowCurPos(nValue);
+} 
+function ShowCurPos(nValue)
+{
+	document.getElementById('curpos').innerHTML = "<span class='cs2' id='curpos' onMouseDown='showpostable();' onMouseOver='showhint(_set_ptz_speed)' onMouseOut='showhint('')'>"+nValue+"</span>";
+}
+function showpostable(){	
+hidep();
+var tb=document.getElementById('pt');
+var curpos=document.getElementById('curpos');
+var nleft=getX(curpos);
+var ntop=getY(curpos);
+tb.style.left=nleft+5;
+tb.style.top=ntop+26;
+tb.style.display = "block";
+}
+function hideppos(panel)
+{
+	$( "#"+panel ).hide();
+}
+//云台控制-----------------------------------------------------------------------------------------------------------
+function ptz_control(command)
+{
+var url = 'set_param.cgi?&group_tag=monitor&next_url=monitor';
+url+='&command='+command;
+url+='&onestep=0';
+$.getScript(url);
+}
+function showhint(str){
+document.getElementById("hint_span").innerText=str;
+}
+function hidep(){
+	$( "#cp" ).hide();
+	$( "#sp" ).hide();
+	$( "#pt" ).hide();
+	$( "#ptColor" ).hide();
+	$( "#cv").hide();
+}
+//云台控制-----------------------------------------------------------------------------------------------------------
+function ptz_onmousedown(i)
+{
+	if(i == 0 ) {ptz_control(FWK_PROTOCOL_PTZ_CMD_UP);}
+	if(i == 1 ) {ptz_control(FWK_PROTOCOL_PTZ_CMD_LEFT_UP);}
+	if(i == 2 ) {ptz_control(FWK_PROTOCOL_PTZ_CMD_RIGHT_UP);}
+	if(i == 3 ) {ptz_control(FWK_PROTOCOL_PTZ_CMD_LEFT);}
+	if(i == 4 ) {ptz_control(FWK_PROTOCOL_PTZ_CMD_CENTER);}
+	if(i == 5 ) {ptz_control(FWK_PROTOCOL_PTZ_CMD_RIGHT);}
+	if(i == 6 ) {ptz_control(FWK_PROTOCOL_PTZ_CMD_LEFT_DOWN);}
+	if(i == 7 ) {ptz_control(FWK_PROTOCOL_PTZ_CMD_DOWN);}
+	if(i == 8 ) {ptz_control(FWK_PROTOCOL_PTZ_CMD_RIGHT_DOWN);}
+	//开关闭合
+	if(i == 13 ) {ptz_control(IO_OFF);}
+	if(i == 14 ) {ptz_control(IO_ON);}
+	//
+	if(i == 9 ) {
+	if(n_vpatrol[current] == 0){	n_vpatrol[current] = 1; ptz_control(FWK_PROTOCOL_PTZ_CMD_VPATROL);}
+	else{				n_vpatrol[current] = 0; ptz_control(FWK_PROTOCOL_PTZ_CMD_VPATROL_STOP);}
+	}
+	if(i == 11 ) {
+	if(n_hpatrol[current] == 0){	n_hpatrol[current] = 1;ptz_control(FWK_PROTOCOL_PTZ_CMD_HPATROL);}
+	else{				n_hpatrol[current] = 0; ptz_control(FWK_PROTOCOL_PTZ_CMD_HPATROL_STOP);}
+	}
+}
+function set_flip(img)
+{
+	if(img.indexOf("img_reversal")!= -1)
+	{
+		$("#img_reversal").attr("src",(n_reversal[current] == 0)?"images/reversal_on.gif":"images/reversal.gif");
+		(n_reversal[current] == 0)?n_reversal[current]=1:n_reversal[current]=0;
+	}
+	
+	if(img.indexOf("img_mirror")!= -1)
+	{
+		$("#img_mirror").attr("src",(n_mirror[current] == 0)?"images/mirror_on.gif":"images/mirror.gif");
+		(n_mirror[current] == 0)?n_mirror[current]=1:n_mirror[current]=0;
+	}
+	
+	var value1;
+	if ( (n_reversal[current]==1) && (n_mirror[current]==1)){
+		value1 = 3;
+	}
+	else if (n_reversal[current]==1){
+		value1 = 1;
+	}
+	else if (n_mirror[current]==1){
+		value1 = 2;
+	}
+	else{
+		value1 = 0;
+	}
+	camera_control(5, value1);
+}
+function ptz_onmouseup(i)
+{
+	if(pri==1)
+		return 0;
+	if(i == 0 ) {ptz_control(PTZ_UP_STOP);}
+	if(i == 1 ) {ptz_control(PTZ_STOP);}
+	if(i == 2 ) {ptz_control(PTZ_STOP);}
+	if(i == 3 ) {ptz_control(PTZ_LEFT_STOP);}
+	//if(i == 4 ) {ptz_control(PTZ_STOP);}
+	if(i == 5 ) {ptz_control(PTZ_RIGHT_STOP);}
+	if(i == 6 ) {ptz_control(PTZ_STOP);}
+	if(i == 7 ) {ptz_control(PTZ_DOWN_STOP);}
+	if(i == 8 ) {ptz_control(PTZ_STOP);}
+	//开关闭合
+	if(i == 13 ) {$("#switchoff").attr("src","images/switchoff_up.gif");}
+	if(i == 14 ) {$("#switchon").attr("src","images/switchon_up.gif");}
+}
+//屏幕分割-----------------------------------------------------------------------------------------------------------
+var n_x = 0;
+var maliu_id = 80;
+function x_onclick(index,bSave) 
+{
+	n_x = index;
+	$("#x1").attr("src","images/x1_off.gif");
+	$("#x4").attr("src","images/x4_off.gif");
+	$("#x9").attr("src","images/x9_off.gif");
+
+	
+	setTimeout('x_onclick_ex()',100);
+	if(bSave)
+		setcookie('split',n_x,1080);
+}
+function x_onclick_ex()
+{
+}
+//焦点控件改变-----------------------------------------------------------------------------------------------------------
+function helper_ChangeFocus(index)
+{
+	for (var i=0;i<9;++i){			
+		if(i == index) continue;	
+		vlc.SetFocus(0);//取消其他控件焦点
+	} 
+	current = index;
+	//还原图标状态
+	$("#vpatrol").attr("src",(n_vpatrol[current] == 0)?"images/vpatrol_up.gif":"images/vpatrol_down.gif");
+	$("#hpatrol").attr("src",(n_hpatrol[current] == 0)?"images/hpatrol_up.gif":"images/hpatrol_down.gif");
+
+	$("#img_reversal").attr("src",(n_reversal[current] == 0)?"images/reversal.gif":"images/reversal_on.gif");
+	$("#img_mirror").attr("src",(n_mirror[current] == 0)?"images/mirror.gif":"images/mirror_on.gif");
+
+	$("#audio").attr("src",(vlc.audio.mute == 0)?"images/btn_jianting.gif":"images/btn_jianting_on.gif");
+	
+	//还原数据
+//	helper_showParam();
+}
+var s_CurVol="";
+function ShowVolmue(btn,nCur,nDef){
+	hidep();	
+	for(var i=1;i<16;i++){
+		$("#cvColorSpan"+i).css("color","#17659e");
+		$("#cvColorSpan"+i).css("font-weight","normal");
+	}
+	$("#cvColorSpan"+nDef).css("color","red");
+	$("#cvColorSpan"+parseInt((nCur-1)/2)).css("color","yellow");
+	$("#cvColorSpan"+parseInt((nCur-1)/2)).css("font-weight","bold");
+	
+	var left = $("#"+btn).offset().left;//元素相当于窗口的左边的偏移量
+	var top = $("#"+btn).offset().top;//元素相对于窗口的上边的偏移量
+	$("#cv").css("left",left+5);
+	$("#cv").css("top",top+12);
+	$("#cv").show();
+	s_CurVol=btn;
+}
+function settingurl()
+{
+	location="index.htm";
+}
+function SetCpBackColor(obj, n)
+{
+	//鼠标在范围内时变色，否则无色
+	if(n == 0){
+		obj.bgColor = '';
+	}else{
+		obj.bgColor = '#ffff00';
+	}
+}
+function callpos(cmd){
+var url = 'set_param.cgi?&group_tag=monitor&next_url=monitor';
+url+='&command='+cmd;
+url+='&onestep=0'+'&sit='+cmd;
+url+='&' + new Date().getTime() + Math.random();
+$.getScript(url);
+hidep();
+}
+function setpos(cmd){
+var url = 'set_param.cgi?&group_tag=monitor&next_url=monitor';
+url+='&command='+cmd;
+url+='&onestep=0'+'&sit='+cmd;
+url+='&' + new Date().getTime() + Math.random();
+$.getScript(url);
+hidep();
+}
+function setVolume(nValue){
+	if(s_CurVol=='involume'){
+		camera_control(24,1+nValue*2);
+		involume=1+nValue*2;
+	}else if(s_CurVol=='outvolume'){
+		camera_control(25,1+nValue*2);
+		outvolume=1+nValue*2;
+	}
+}
+function setColor(nValue)
+{
+	if(s_CurColor=="clr_bright"){
+		camera_control(1,64+nValue*4);
+		vbright=64+nValue*4;
+	}
+	else if(s_CurColor=="clr_contast"){
+		camera_control(2,64+nValue*4);
+		vcontrast=64+nValue*4;
+	}
+	else if(s_CurColor=="clr_saturation"){
+		camera_control(8,64+nValue*4);
+		vsaturation=64+nValue*4;
+	}
+	else if(s_CurColor=="clr_hue"){
+		camera_control(9,64+nValue*4);
+		vhue=64+nValue*4;
+	}	
+}
+</SCRIPT>
+<STYLE type=text/css>.style2 {
+	FONT-SIZE: 12px
+}
+BODY {
+	BACKGROUND-COLOR: #333333; MARGIN: 0px
+}
+</STYLE>
+
+<META name=GENERATOR content="MSHTML 8.00.7601.18934"></HEAD>
+<BODY onunload=body_onunload() onload=body_onload()>
+<TABLE border=0 cellSpacing=0 cellPadding=0 width="100%" height="100%">
+  <TBODY>
+  <TR>
+    <TD onclick=hidep(); height="100%" vAlign=center align=right>
+      <TABLE cellSpacing=0 cellPadding=0>
+        <TBODY>
+        <TR>
+          <TD><IMG src="images/2_10.gif" width=60 height=27></TD>
+          <TD height=27 background=images/2_11.gif colSpan=2 
+            align=middle><IMG src="images/2_17.gif" width=86 
+        height=27></TD></TR>
+        <TR>
+          <TD style="BACKGROUND-REPEAT: repeat-y" vAlign=center 
+          background=images/2_13.gif><BR><IMG 
+            src="images/2_16.gif" width=60><BR></TD>
+          <TD>
+            <DIV id=ipcamdiv align=center height="240" width="320" 
+            name="ipcamdiv">
+			<OBJECT classid="clsid:9BE31822-FDAD-461B-AD51-BE1D1C159921"
+				codebase="http://downloads.videolan.org/pub/videolan/vlc/latest/win32/axvlc.cab"
+				   width="640" height="480" id="vlc" events="True">
+			 <!--<param name="Src" value="http://video-js.zencoder.com/oceans-clip.mp4" />-->
+			 <!--<param name="Src" value="http://live.3gv.ifeng.com/live/CCTV13.m3u8" />-->
+			 <!--<param name="Src" value="rtmp://live.hkstv.hk.lxdns.com/live/hks" />-->
+			 <!--<param name="Src" value="mmst://media.shtv.net.cn/shtv" />-->
+			 <param name="Src" value="rtsp://172.16.14.227/webcam" />
+			 <param name="ShowDisplay" value="True" />
+			 <param name="AutoLoop" value="False" />
+			 <param name="AutoPlay" value="True" />
+			 </OBJECT>
+            </DIV></TD>
+          <TD bgColor=#000000></TD></TR>
+        <TR>
+          <TD><IMG src="images/2_27.gif" width=60 height=27></TD>
+          <TD background=images/2_19.gif colSpan=2 align=middle><IMG 
+            src="images/2_20.gif" width=86 
+    height=27></TD></TR></TBODY></TABLE></TD>
+    <TD vAlign=center>
+      <TABLE border=0 cellSpacing=0 cellPadding=0 width=242 
+      background=images/bg_right.jpg height=593>
+        <TBODY>
+        <TR>
+          <TD height=20 align=middle></TD></TR>
+        <TR>
+          <TD onclick=hidep(); height=34 align=middle><IMG id=img_logo 
+            src="images/elogo.gif" width=174 height=34></TD></TR>
+        <TR>
+          <TD height=2 align=middle><IMG src="images/line.gif"></TD></TR>
+        <TR>
+          <TD vAlign=top>
+            <TABLE border=0 cellSpacing=0 cellPadding=0 width="100%">
+              <TBODY>
+              <TR>
+                <TD onclick=hidep(); height=160 align=middle><IMG 
+                  id=device_status border=0 src="images/green.gif" 
+                  width=138 height=138 useMap=#Map7MapMap> <MAP 
+                    name=Map7MapMap><AREA id=ptz_center 
+                    onclick=ptz_onmousedown(4) 
+                     shape=circle 
+                    coords=70,69,33><AREA onmouseup=ptz_onmouseup(6) 
+                    onmousedown=ptz_onmousedown(6) 
+                     shape=poly 
+                    coords=13,104,27,95,35,104,44,112,34,125,22,116><AREA 
+                    onmouseup=ptz_onmouseup(2) onmousedown=ptz_onmousedown(2) 
+                     shape=poly 
+                    coords=97,28,108,14,119,24,126,34,113,43><AREA id=ptz_left 
+                    onmouseup=ptz_onmouseup(3) onmousedown=ptz_onmousedown(3) 
+                     shape=rect 
+                    coords=5,52,21,92><AREA id=ptz_down 
+                    onmouseup=ptz_onmouseup(7) onmousedown=ptz_onmousedown(7) 
+                     shape=rect 
+                    coords=48,117,92,133><AREA id=ptz_right 
+                    onmouseup=ptz_onmouseup(5) onmousedown=ptz_onmousedown(5) 
+                     shape=rect 
+                    coords=120,51,135,92><AREA id=ptz_up 
+                    onmouseup=ptz_onmouseup(0); onmousedown=ptz_onmousedown(0); 
+                     shape=rect 
+                    coords=49,5,94,20><AREA onmouseup=ptz_onmouseup(1) 
+                    onmousedown=ptz_onmousedown(1) 
+                     shape=poly 
+                    coords=32,14,20,24,13,34,27,44,33,33,43,27><AREA 
+                    onmouseup=ptz_onmouseup(8) onmousedown=ptz_onmousedown(8) 
+                     shape=poly 
+                    coords=112,95,126,105,118,116,106,125,96,110></MAP></TD>
+                <TD onclick=hidep(); align=middle>&nbsp;</TD></TR>
+              <TR>
+                <TD align=middle>
+                  <TABLE border=0 cellSpacing=0 cellPadding=0 height=100>
+                    <TBODY>
+                    <TR>
+                      <TD onclick=hidep(); width=50></TD>
+                      <TD><IMG id=vpatrol class=cs 
+                        onmouseover=showhint(_vertical_patrol) 
+                        onmouseout="showhint('')" onmousedown=ptz_onmousedown(9) 
+                        hspace=4 src="images/vpatrol_up.gif"></TD>
+                      <TD><IMG id=hpatrol class=cs 
+                        onmouseover=showhint(_horizon_patrol) 
+                        onmouseout="showhint('')" 
+                        onmousedown=ptz_onmousedown(11) hspace=4 
+                        src="images/hpatrol_up.gif"></TD>
+                      <TD><IMG id=img_reversal class=cs 
+                        onmouseover=showhint(_reversal) 
+                        onmouseout="showhint('')" 
+                        onclick="set_flip('img_reversal')" name=img_reversal 
+                        hspace=4 src="images/reversal.gif"></TD>
+                      <TD><IMG id=img_mirror class=cs 
+                        onmouseover=showhint(_mirror) onmouseout="showhint('')" 
+                        onclick="set_flip('img_mirror')" 
+                        src="images/mirror.gif"></TD>
+                      <TD onclick=hidep(); width=50></TD></TR>
+                    <TR>
+                      <TD onclick=hidep();>&nbsp;</TD>
+                      <TD><IMG id=switchon onmouseup=ptz_onmouseup(14) 
+                        class=cs onmouseover=showhint(_switchon) 
+                        onmouseout="showhint('')" 
+                        onmousedown=ptz_onmousedown(14) hspace=4 
+                        src="images/switchon_up.gif"></TD>
+                      <TD><IMG id=switchoff onmouseup=ptz_onmouseup(13) 
+                        class=cs onmouseover=showhint(_switchoff) 
+                        onmouseout="showhint('')" 
+                        onmousedown=ptz_onmousedown(13) hspace=4 
+                        src="images/switchoff_up.gif"></TD>
+                      <TD><IMG id=ircontrol class=cs 
+                        onmouseover=showhint(_ironoff) onmouseout="showhint('')" 
+                        onclick=SetIROnOff() hspace=4 
+                        src="images/ir0.gif" width=26 height=26></TD>
+                      <TD height=26 background=images/pt_speed.gif 
+                      align=middle><STRONG><SPAN id=curpos class=cs2 
+                        onmouseover=showhint(_set_ptz_speed) 
+                        onmouseout="showhint('')" 
+                        onmousedown=showpostable();></SPAN></STRONG>
+                        <DIV 
+                        style="Z-INDEX: 1; POSITION: absolute; WIDTH: 101px; DISPLAY: none; HEIGHT: 104px; TOP: 100px; LEFT: 100px" 
+                        id=pt>
+                        <TABLE border=1 cellSpacing=0 cellPadding=0 
+                        bgColor=#c6e2ff>
+                          <TBODY>
+                          <TR>
+                            <TD width=20>
+                              <DIV align=center><SPAN class=cs3 
+                              onclick="setspeed(0);hideppos('pt')">&nbsp;0&nbsp;</SPAN></DIV></TD>
+                            <TD width=20>
+                              <DIV align=center><SPAN class=cs3 
+                              onclick="setspeed(1);hideppos('pt')">&nbsp;1&nbsp;</SPAN></DIV></TD>
+                            <TD width=20>
+                              <DIV align=center><SPAN class=cs3 
+                              onclick="setspeed(2);hideppos('pt')">&nbsp;2&nbsp;</SPAN></DIV></TD>
+                            <TD width=20>
+                              <DIV align=center><SPAN class=cs3 
+                              onclick="hideppos('pt')">X</SPAN></DIV></TD></TR>
+                          <TR>
+                            <TD>
+                              <DIV align=center><SPAN class=cs3 
+                              onclick="setspeed(3);hideppos('pt')">&nbsp;3&nbsp;</SPAN></DIV></TD>
+                            <TD>
+                              <DIV align=center><SPAN class=cs3 
+                              onclick="setspeed(4);hideppos('pt')">&nbsp;4&nbsp;</SPAN></DIV></TD>
+                            <TD>
+                              <DIV align=center><SPAN class=cs3 
+                              onclick="setspeed(5);hideppos('pt')">&nbsp;5&nbsp;</SPAN></DIV></TD>
+                            <TD>
+                              <DIV align=center><SPAN class=cs3 
+                              onclick="setspeed(6);hideppos('pt')">6</SPAN></DIV></TD></TR>
+                          <TR>
+                            <TD>
+                              <DIV align=center><SPAN class=cs3 
+                              onclick="setspeed(7);hideppos('pt')">&nbsp;7&nbsp;</SPAN></DIV></TD>
+                            <TD>
+                              <DIV align=center><SPAN class=cs3 
+                              onclick="setspeed(8);hideppos('pt')">&nbsp;8&nbsp;</SPAN></DIV></TD>
+                            <TD>
+                              <DIV align=center><SPAN class=cs3 
+                              onclick="setspeed(9);hideppos('pt')">&nbsp;9&nbsp;</SPAN></DIV></TD>
+                            <TD>
+                              <DIV align=center><SPAN class=cs3 
+                              onclick="setspeed(10);hideppos('pt')">10&nbsp;</SPAN></DIV></TD></TR></TBODY></TABLE></DIV></TD>
+                      <TD onclick=hidep();></TD></TR>
+                    <TR>
+                      <TD onclick=hidep();>&nbsp;</TD>
+                      <TD><IMG id=clr_bright class=cs 
+                        onmouseover=showhint(_brightness) 
+                        onmouseout="showhint('')" 
+                        onclick="ShowptColor('clr_bright',vbright,16)" hspace=4 
+                        src="images/clr_bright.gif"></TD>
+                      <TD><IMG id=clr_contast class=cs 
+                        onmouseover=showhint(_contrast) 
+                        onmouseout="showhint('')" 
+                        onclick="ShowptColor('clr_contast',vcontrast,16)" 
+                        hspace=4 src="images/clr_contast.gif"></TD>
+                      <TD><IMG id=clr_saturation class=cs 
+                        onmouseover=showhint(_Saturation) 
+                        onmouseout="showhint('')" 
+                        onclick="ShowptColor('clr_saturation',vsaturation,16)" 
+                        hspace=4 src="images/clr_saturation.gif"></TD>
+                      <TD><IMG id=clr_hue class=cs onmouseover=showhint(_hue) 
+                        onmouseout="showhint('')" 
+                        onclick="ShowptColor('clr_hue',vhue,16)" 
+                        src="images/clr_hue.gif"></TD>
+                      <TD onclick=hidep();>&nbsp;</TD></TR></TBODY></TABLE></TD></TR>
+              <TR>
+                <TD onclick=hidep(); height=40 align=middle>
+                  <TABLE border=0 cellSpacing=0 cellPadding=0 width=192>
+                    <TBODY>
+                    <TR align=middle>
+                      <TD><IMG id=x1 class=cs onclick="x_onclick('1',true);" 
+                        alt="" src="images/x1_off.gif"></TD>
+                      <TD><IMG id=x4 class=cs onclick="x_onclick('4',true)" 
+                        alt="" src="images/x4_off.gif"></TD>
+                      <TD><IMG id=x9 class=cs onclick="x_onclick('9',true)" 
+                        alt="" 
+                  src="images/x9_off.gif"></TD></TR></TBODY></TABLE></TD>
+                <TD onclick=hidep(); align=middle>&nbsp;</TD></TR>
+              <TR>
+                <TD height=145 vAlign=top align=middle>
+                  <TABLE id=bvoption border=0 cellSpacing=0 cellPadding=0>
+                    <TBODY>
+                    <TR height=10>
+                      <TD><SPAN class=style2>
+                        <SCRIPT>document.write(_mode);</SCRIPT>
+                        </SPAN></TD>
+                      <TD></TD>
+                      <TD><SELECT style="WIDTH: 95px" id=mode class=s4 
+                        onchange=camera_control(3,this.value); name=mode> 
+                          <OPTION selected value=0>50 HZ</OPTION> <OPTION 
+                          value=1>60 HZ</OPTION></SELECT></TD></TR>
+                    <TR>
+                      <TD><SPAN class=style2>
+                        <SCRIPT>document.write(_resolution);</SCRIPT>
+                        </SPAN></TD>
+                      <TD>&nbsp;</TD>
+                      <TD><SELECT style="WIDTH: 95px" id=vresolution class=s4 
+                        onchange="camera_control(0,this.value);setTimeout('changeRes()',1500);" 
+                        name=vresolution> <OPTION selected 
+                          value=4>FHD(1920x1080)</OPTION> <OPTION 
+                          value=2>HD(1280x720)</OPTION> <OPTION 
+                          value=0>VGA(640x360)</OPTION></SELECT></TD></TR>
+                    <TR>
+                      <TD><SPAN class=style2>
+                        <SCRIPT>document.write(_media_bitrate);</SCRIPT>
+                        </SPAN></TD>
+                      <TD>&nbsp;</TD>
+                      <TD><SELECT style="WIDTH: 95px" id=bitrate class=s4 
+                        onchange=camera_control(k,this.value); name=bitrate> 
+                          <OPTION selected value=128>128kbps</OPTION> <OPTION 
+                          value=256>256kbps</OPTION> <OPTION 
+                          value=384>384kbps</OPTION> <OPTION 
+                          value=512>512kbps</OPTION> <OPTION 
+                          value=640>640kbps</OPTION> <OPTION 
+                          value=768>768kbps</OPTION> <OPTION 
+                          value=896>896kbps</OPTION> <OPTION 
+                          value=1024>1024kbps</OPTION> <OPTION 
+                          value=1280>1280kbps</OPTION> <OPTION 
+                          value=1536>1536kbps</OPTION> <OPTION 
+                          value=1792>1792kbps</OPTION> <OPTION 
+                          value=2048>2048kbps</OPTION> <OPTION 
+                          value=2560>2560kbps</OPTION> <OPTION 
+                          value=3072>3072kbps</OPTION> <OPTION 
+                          value=3584>3584kbps</OPTION> <OPTION 
+                          value=4096>4096kbps</OPTION></SELECT></TD></TR>
+                    <TR>
+                      <TD><SPAN class=style2>
+                        <SCRIPT>document.write(_MaxRate);</SCRIPT>
+                        </SPAN></TD>
+                      <TD>&nbsp;</TD>
+                      <TD><SELECT style="WIDTH: 95px" id=cbMaxVideoRate 
+                        onchange=camera_control(j,this.value); 
+                        name=cbMaxVideoRate> <OPTION selected 
+                          value=25>25</OPTION> <OPTION value=20>20</OPTION> 
+                          <OPTION value=15>15</OPTION> <OPTION 
+                          value=10>10</OPTION> <OPTION value=5>5</OPTION> 
+                          <OPTION value=5>1</OPTION></SELECT></TD></TR>
+                    <TR height=20>
+                      <TD><SPAN class=style2>
+                        <SCRIPT>document.write(_volume);</SCRIPT>
+                        </SPAN></TD>
+                      <TD>&nbsp;</TD>
+                      <TD><SPAN id=involume class=cs3 
+                        onclick="ShowVolmue('involume',involume,7)">
+                        <SCRIPT>document.write(_involume);</SCRIPT>
+                        </SPAN>&nbsp; &nbsp;<SPAN id=outvolume class=cs3 
+                        onclick="ShowVolmue('outvolume',outvolume,15)">
+                        <SCRIPT>document.write(_outvolume);</SCRIPT>
+                         </SPAN></TD></TR>
+                    <TR height=20>
+                      <TD><SPAN class=style2>
+                        <SCRIPT>document.write(_PresetTitle);</SCRIPT>
+                        </SPAN></TD>
+                      <TD>&nbsp;</TD>
+                      <TD><SPAN id=btncallpos class=cs3 
+                        onclick="showppos('cp','btncallpos')">
+                        <SCRIPT>document.write(_CallPreset);</SCRIPT>
+                        </SPAN>&nbsp; &nbsp;<SPAN id=btnsetpos class=cs3 
+                        onclick="showppos('sp','btnsetpos')">
+                        <SCRIPT>document.write(_SetPreset);</SCRIPT>
+                         </SPAN></TD></TR></TBODY></TABLE></TD></TR>
+              <TR>
+                <TD onclick=hidep(); height=25 align=middle><SPAN id=hint_span 
+                  class=style2></SPAN></TD>
+                <TD onclick=hidep(); align=middle>&nbsp;</TD></TR>
+              <TR>
+                <TD height=42 align=middle>
+                  <TABLE border=0 width=200>
+                    <TBODY>
+                    <TR>
+                      <TD align=right><IMG id=audio class=cs 
+                        onmouseover=showhint(_audio) onmouseout="showhint('')" 
+                        onclick=audio_onclick() alt="" 
+                        src="images/btn_jianting.gif"></TD>
+                      <TD align=right><IMG id=talk class=cs 
+                        onmouseover=showhint(_talk) onmouseout="showhint('')" 
+                        onclick=talk_onclick() alt="" 
+                        src="images/btn_talk.gif"></TD>
+                      <TD align=right><IMG id=record class=cs 
+                        onmouseover=showhint(_record) onmouseout="showhint('')" 
+                        onclick=record_onclick() alt="" 
+                        src="images/btn_luxiang.gif"></TD>
+                      <TD align=right><IMG id=snapshot class=cs 
+                        onmouseover=showhint(_snapshot) 
+                        onmouseout="showhint('')" onclick=snapshotPic() border=0 
+                        alt="" src="images/btn_paizhao.gif"></TD>
+                      <TD align=right><A id=recordinfo class=f13 ><IMG 
+                        id=snapshot class=cs 
+                        onmouseover=showhint(_record_info_fielist) 
+                        onmouseout="showhint('')" border=0 
+                        src="images/playback.gif" width=27 
+                      height=27></A></TD>
+                      <TD bgColor=#ffffff width=1 align=middle></TD>
+                      <TD align=middle><IMG id=setting class=cs 
+                        onmouseover=showhint(_configdevice) 
+                        onmouseout="showhint('')" onclick=settingurl() border=0 
+                        name=setting alt="" 
+                      src="images/btn_shezhi.gif"></TD></TR></TBODY></TABLE></TD></TR>
+              <TR>
+                <TD height=15 
+      align=right></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE>
+<DIV 
+style="Z-INDEX: 1; POSITION: absolute; WIDTH: 111px; DISPLAY: none; HEIGHT: 104px; TOP: 100px; LEFT: 100px" 
+id=cp>
+<TABLE style="BORDER-COLLAPSE: collapse" border=1 cellSpacing=0 cellPadding=0 
+bgColor=#c6e2ff>
+  <TBODY>
+  <TR>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN class=cs3 
+      onclick=callpos(31)>&nbsp;1&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN class=cs3 
+      onclick=callpos(33)>&nbsp;2&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN class=cs3 
+      onclick=callpos(35)>&nbsp;3&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN class=cs3 
+      onclick=callpos(37)>&nbsp;4&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN class=cs3 
+    onclick="hideppos('cp')">X</SPAN></DIV></TD></TR>
+  <TR>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=callpos(39)>&nbsp;5&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=callpos(41)>&nbsp;6&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+    onclick=callpos(43)>&nbsp;7</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=callpos(45)>&nbsp;8&nbsp;</SPAN></DIV></TD>
+    <TD rowSpan=3 width=20></TD></TR>
+  <TR>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=callpos(47)>&nbsp;9&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=callpos(49)>&nbsp;10&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=callpos(51)>&nbsp;11&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=callpos(53)>&nbsp;12&nbsp;</SPAN></DIV></TD></TR>
+  <TR>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=callpos(55)>&nbsp;13&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=callpos(57)>&nbsp;14&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=callpos(59)>&nbsp;15&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=callpos(61)>&nbsp;16&nbsp;</SPAN></DIV></TD></TR></TBODY></TABLE></DIV>
+<DIV 
+style="Z-INDEX: 1; POSITION: absolute; WIDTH: 80px; DISPLAY: none; HEIGHT: 104px; TOP: 100px; LEFT: 100px" 
+id=cv>
+<TABLE style="BORDER-COLLAPSE: collapse" border=1 cellSpacing=0 cellPadding=0 
+bgColor=#c6e2ff>
+  <TBODY>
+  <TR>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN id=cvColorSpan1 class=cs3 
+      onclick="setVolume(1);hideppos('cv')">&nbsp;1&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN id=cvColorSpan2 class=cs3 
+      onclick="setVolume(2);hideppos('cv')">&nbsp;2&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN id=cvColorSpan3 class=cs3 
+      onclick="setVolume(3);hideppos('cv')">&nbsp;3&nbsp;</SPAN></DIV></TD><!--<td onMouseOut="SetCpBackColor(this, 0);" onMouseOver="SetCpBackColor(this, 1);" width=20><div align="center"><span id="cvColorSpan3" class="cs3" onClick="setVolume(3);hideppos('cv')">&nbsp;3&nbsp;</span></div></td>-->
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN class=cs3 
+    onclick="hideppos('cv')">X</SPAN></DIV></TD></TR>
+  <TR>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=cvColorSpan4 class=cs3 
+      onclick="setVolume(4);hideppos('cv')">&nbsp;4&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=cvColorSpan5 class=cs3 
+      onclick="setVolume(5);hideppos('cv')">&nbsp;5&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=cvColorSpan6 class=cs3 
+      onclick="setVolume(6);hideppos('cv')">&nbsp;6</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=cvColorSpan7 class=cs3 
+      onclick="setVolume(7);hideppos('cv')">&nbsp;7&nbsp;</SPAN></DIV></TD>
+    <TD rowSpan=3 width=20></TD></TR>
+  <TR>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=cvColorSpan8 class=cs3 
+      onclick="setVolume(8);hideppos('cv')">&nbsp;8&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=cvColorSpan9 class=cs3 
+      onclick="setVolume(9);hideppos('cv')">&nbsp;9&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=cvColorSpan10 class=cs3 
+      onclick="setVolume(10);hideppos('cv')">&nbsp;10&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=cvColorSpan11 class=cs3 
+      onclick="setVolume(11);hideppos('cv')">&nbsp;11&nbsp;</SPAN></DIV></TD></TR>
+  <TR>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=cvColorSpan12 class=cs3 
+      onclick="setVolume(12);hideppos('cv')">&nbsp;12&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=cvColorSpan13 class=cs3 
+      onclick="setVolume(13);hideppos('cv')">&nbsp;13&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=cvColorSpan14 class=cs3 
+      onclick="setVolume(14);hideppos('cv')">&nbsp;14&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=cvColorSpan15 class=cs3 
+      onclick="setVolume(15);hideppos('cv')">&nbsp;15&nbsp;</SPAN></DIV></TD></TR></TBODY></TABLE></DIV>
+<DIV 
+style="Z-INDEX: 1; POSITION: absolute; WIDTH: 111px; DISPLAY: none; HEIGHT: 104px; TOP: 100px; LEFT: 100px" 
+id=sp>
+<TABLE style="BORDER-COLLAPSE: collapse" border=1 cellSpacing=0 cellPadding=0 
+bgColor=#c6e2ff>
+  <TBODY>
+  <TR>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN class=cs3 
+      onclick=setpos(30);>&nbsp;1&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN class=cs3 
+      onclick=setpos(32);>&nbsp;2&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN class=cs3 
+      onclick=setpos(34);>&nbsp;3&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=setpos(36);>&nbsp;4&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN class=cs3 
+    onclick="hideppos('sp')">X</SPAN></DIV></TD></TR>
+  <TR>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=setpos(38);>&nbsp;5&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=setpos(40);>&nbsp;6&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+    onclick=setpos(42);>&nbsp;7</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=setpos(44);>&nbsp;8&nbsp;</SPAN></DIV></TD>
+    <TD rowSpan=3 width=20></TD></TR>
+  <TR>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=setpos(46);>&nbsp;9&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=setpos(48);>&nbsp;10&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=setpos(50);>&nbsp;11&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=setpos(52);>&nbsp;12&nbsp;</SPAN></DIV></TD></TR>
+  <TR>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=setpos(54);>&nbsp;13&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=setpos(56);>&nbsp;14&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=setpos(58);>&nbsp;15&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN class=cs3 
+      onclick=setpos(60);>&nbsp;16&nbsp;</SPAN></DIV></TD></TR></TBODY></TABLE></DIV>
+<DIV 
+style="Z-INDEX: 1; POSITION: absolute; WIDTH: 151px; DISPLAY: none; HEIGHT: 144px; TOP: 100px; LEFT: 100px" 
+id=ptColor>
+<TABLE border=1 cellSpacing=0 cellPadding=0 bgColor=#c6e2ff>
+  <TBODY>
+  <TR>
+    <TD id=ptColor0 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN id=ptColorSpan0 class=cs3 
+      onclick="setColor(0);hideppos('ptColor')">&nbsp;0&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor1 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN id=ptColorSpan1 class=cs3 
+      onclick="setColor(1);hideppos('ptColor')">&nbsp;1&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor2 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN id=ptColorSpan2 class=cs3 
+      onclick="setColor(2);hideppos('ptColor')">&nbsp;2&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor3 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN id=ptColorSpan3 class=cs3 
+      onclick="setColor(3);hideppos('ptColor')">&nbsp;3&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor4 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN id=ptColorSpan4 class=cs3 
+      onclick="setColor(4);hideppos('ptColor')">&nbsp;4&nbsp;</SPAN></DIV></TD>
+    <TD onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);" width=20>
+      <DIV align=center><SPAN class=cs3 
+      onclick="hideppos('ptColor')">X</SPAN></DIV></TD></TR>
+  <TR>
+    <TD id=ptColor5 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan5 class=cs3 
+      onclick="setColor(5);hideppos('ptColor')">&nbsp;5&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor6 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan6 class=cs3 
+      onclick="setColor(6);hideppos('ptColor')">&nbsp;6&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor7 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan7 class=cs3 
+      onclick="setColor(7);hideppos('ptColor')">&nbsp;7&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor8 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan8 class=cs3 
+      onclick="setColor(8);hideppos('ptColor')">&nbsp;8&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor9 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan9 class=cs3 
+      onclick="setColor(9);hideppos('ptColor')">&nbsp;9&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor10 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan10 class=cs3 
+      onclick="setColor(10);hideppos('ptColor')">10</SPAN></DIV></TD></TR>
+  <TR>
+    <TD id=ptColor11 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan11 class=cs3 
+      onclick="setColor(11);hideppos('ptColor')">&nbsp;11&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor12 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan12 class=cs3 
+      onclick="setColor(12);hideppos('ptColor')">&nbsp;12&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor13 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan13 class=cs3 
+      onclick="setColor(13);hideppos('ptColor')">&nbsp;13&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor14 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan14 class=cs3 
+      onclick="setColor(14);hideppos('ptColor')">&nbsp;14&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor15 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan15 class=cs3 
+      onclick="setColor(15);hideppos('ptColor')">&nbsp;15&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor16 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan16 class=cs3 
+      onclick="setColor(16);hideppos('ptColor')">16</SPAN></DIV></TD></TR>
+  <TR>
+    <TD id=ptColor17 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan17 class=cs3 
+      onclick="setColor(17);hideppos('ptColor')">&nbsp;17&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor18 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan18 class=cs3 
+      onclick="setColor(18);hideppos('ptColor')">&nbsp;18&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor19 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan19 class=cs3 
+      onclick="setColor(19);hideppos('ptColor')">&nbsp;19&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor20 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan20 class=cs3 
+      onclick="setColor(20);hideppos('ptColor')">&nbsp;20&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor21 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan21 class=cs3 
+      onclick="setColor(21);hideppos('ptColor')">&nbsp;21&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor22 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan22 class=cs3 
+      onclick="setColor(22);hideppos('ptColor')">22</SPAN></DIV></TD></TR>
+  <TR>
+    <TD id=ptColor23 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan23 class=cs3 
+      onclick="setColor(23);hideppos('ptColor')">&nbsp;23&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor24 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan24 class=cs3 
+      onclick="setColor(24);hideppos('ptColor')">&nbsp;24&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor25 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan25 class=cs3 
+      onclick="setColor(25);hideppos('ptColor')">&nbsp;25&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor26 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan26 class=cs3 
+      onclick="setColor(26);hideppos('ptColor')">&nbsp;26&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor27 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan27 class=cs3 
+      onclick="setColor(27);hideppos('ptColor')">&nbsp;27&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor28 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan28 class=cs3 
+      onclick="setColor(28);hideppos('ptColor')">28</SPAN></DIV></TD></TR>
+  <TR>
+    <TD id=ptColor29 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan29 class=cs3 
+      onclick="setColor(29);hideppos('ptColor')">&nbsp;29&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor30 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan30 class=cs3 
+      onclick="setColor(30);hideppos('ptColor')">&nbsp;30&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor31 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan31 class=cs3 
+      onclick="setColor(31);hideppos('ptColor')">&nbsp;31&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor32 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan32 class=cs3 
+      onclick="setColor(32);hideppos('ptColor')">&nbsp;32&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor33 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan33 class=cs3 
+      onclick="setColor(33);hideppos('ptColor')">&nbsp;33&nbsp;</SPAN></DIV></TD>
+    <TD id=ptColor34 onmouseover="SetCpBackColor(this, 1);" 
+    onmouseout="SetCpBackColor(this, 0);">
+      <DIV align=center><SPAN id=ptColorSpan34 class=cs3 
+      onclick="setColor(34);hideppos('ptColor')">34</SPAN></DIV></TD></TR></TBODY></TABLE></DIV>
+<SCRIPT src="images/logo.js"></SCRIPT>
+
+<OBJECT id=sound_player classid=CLSID:6BF52A52-394A-11d3-B153-00C04F79FAA6 
+width=0 height=0 type=application/x-oleobject><PARAM NAME="url" VALUE="images/alarm.wav"><PARAM NAME="autoStart" VALUE="false"><PARAM NAME="playCount" VALUE="1"><PARAM NAME="rate" VALUE="1"></OBJECT></BODY></HTML>

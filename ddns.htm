@@ -1,0 +1,426 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="date" content="0">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<meta http-equiv="expires" content="0">
+<link rel="stylesheet" href="style.css" type="text/css">
+<title></title>
+<script src="get_param.cgi"></script> 
+<script type="text/javascript" src="jquery/jquery.min.js"></script>
+<script type="text/javascript" src="public.js"></script>
+<script>
+function set_ddns()
+{
+if ($("#service").val() == 11){
+	if($("#port_inp").val()=='')
+	{
+		alert(_not_null);
+		$("#port_inp").focus();
+		return;
+	}	
+	if(($("#port_inp").val()<1) || ($("#port_inp").val()>65535))
+	{
+		alert(_port_range);
+		$("#port_inp").focus();
+		$("#port_inp").select();
+		return;
+	}
+}
+var url;
+url='set_ddns.cgi?next_url=ddns.htm';
+url+='&loginuse='+loginuser+'&loginpas='+encodeURIComponent(loginpass);
+url+='&service='+ encodeURIComponent($("#service").val());
+url+='&user='+encodeURIComponent($("#user").val());
+url+='&pwd='+encodeURIComponent($("#pwd").val());
+url+='&host='+encodeURIComponent($("#host").val());
+if ($("#service").val() == 11)
+{
+	url+='&proxy_svr='+encodeURIComponent($("#svr").val());
+	url+='&proxy_port='+($("#port_inp").val()==''?0:$("#port_inp").val());	
+}
+else if ($("#service").val() >= 10)
+{
+	url+='&proxy_svr='+encodeURIComponent($("#svr1").val());
+	url+='&proxy_port='+($("#port_inp1").val()==''?0:$("#port_inp1").val());	
+}
+url+='&ddns_mode='+$("#d_mode").val();
+if (($("#restart_dyndns").attr("checked")=="checked")) url+='&restart_dyndns=1';
+
+//alert(url);
+location=url;
+}
+
+
+var first = true;
+function service_onchanged()
+{
+$("#tr_user").hide();
+$("#tr_pwd").hide();
+$("#tr_host").hide();
+$("#tr_svr").hide();
+$("#tr_port").hide();
+$("#tr_svr1").hide();
+$("#tr_port1").hide();
+$("#tr_mode").hide();
+$("#tr_restart_dyndns").hide();
+
+var nService=$("#service").val();
+
+if(!first)
+{
+$("#user").val("");
+$("#pwd").val("");
+$("#host").val("");
+$("#svr").val("");
+$("#port_inp").val("");	
+$("#svr1").val("");
+$("#port_inp1").val("");
+
+if(nService == ddns_service)
+{
+$("#host").val(ddns_host);
+$("#user").val(ddns_user);
+$("#pwd").val(ddns_pwd);
+$("#svr").val(ddns_proxy_svr);
+$("#port_inp").val((ddns_proxy_port==0)?'80':ddns_proxy_port);
+$("#svr1").val(ddns_proxy_svr);
+$("#port_inp1").val((ddns_proxy_port==0)?'80':ddns_proxy_port);
+$("#d_mode").val(ddns_mode);
+}
+}
+
+first=false;
+
+if ((nService==2)||
+(nService==3)||
+(nService==4)||
+(nService==8)||
+(nService==9))
+{
+$("#tr_user").show();
+$("#tr_pwd").show();
+$("#tr_host").show();
+}
+else if (nService == 11)
+{
+$("#tr_user").show();
+$("#tr_pwd").show();
+$("#tr_host").show();
+$("#tr_svr").show();
+$("#tr_port").show();
+$("#tr_mode").show();
+	svrhint.innerText="http://www.9299.org/upgengxin.asp";
+	if(svr.value==""){
+		svr.value="http://www.9299.org/upgengxin.asp";
+		port_inp.value="80";
+		d_mode.value="1";
+	}		
+}
+else if (nService == 10)
+{
+$("#tr_user").show();
+$("#tr_pwd").show();
+$("#tr_host").show();
+$("#tr_port1").show();
+}
+else if(nService!=0)
+{
+$("#tr_user").show();
+$("#tr_pwd").show();
+$("#tr_svr1").show();
+$("#tr_port1").show();
+}
+}
+function d2(msg)
+{	
+	document.getElementById("_factoryddnsinfo").innerText=msg;	
+}	
+
+function d3(msg)
+{
+$("#ddns_status_info").html("&nbsp;&nbsp;"+msg);
+}	
+function body_onload()
+{
+	factoryddnsServer.value=factory_server;
+	factoryddnsacc.value=factory_user;
+	arr=factoryddnsServer.value.split(".");
+	if(arr.length==3){
+		factoryurl.innerText="http://" + factory_user + "." + arr[1] + "." + arr[2];
+	}
+
+$("#service").val(ddns_service);
+$("#host").val(ddns_host);
+$("#user").val(ddns_user);
+$("#pwd").val(ddns_pwd);
+$("#svr").val(ddns_proxy_svr);
+$("#port_inp").val((ddns_proxy_port==0)?'80':ddns_proxy_port);
+$("#svr1").val(ddns_proxy_svr);
+$("#port_inp1").val((ddns_proxy_port==0)?'80':ddns_proxy_port);
+$("#d_mode").val(ddns_mode);
+
+	enable.checked=factory_index==0?false:true;
+	tr_fa_svr.style.display=enable.checked?'':'none';
+	tr_fa_acc.style.display=enable.checked?'':'none';
+	tr_fa_url.style.display=enable.checked?'':'none';
+	tr_fa_sta.style.display=enable.checked?'':'none';
+
+service_onchanged();
+switch (factory_status)
+{
+case 0:
+	d2(_ddns_noaction);
+	break;
+case 1:
+	d2(_ddns_waiting);
+	break;
+case 2:
+	d2(_ddns_cannotconnect);
+	break;
+case 22:
+	d2(_factory_ok);
+	break;
+case 23:
+	d2(_factory_noauth);
+	break;
+case 24:
+	d2(_factory_noid);
+	break;
+case 25:
+	d2(_factory_over);
+	break;
+case 26:
+	d2(_factory_iddisable);
+	break;
+case 27:
+	d2(_factory_errparam);
+	break;
+case 28:
+	d2(_factory_unknownerr);
+	break;
+}
+
+switch (dns_status)
+{
+case 0:
+d3(_ddns_noaction);
+break;
+case 1:
+d3(_ddns_waiting);
+break;
+case 2:
+d3(_ddns_cannotconnect);
+break;
+case 3:
+url='http://'+ddns_host;
+if (location.port!='') url+=':'+location.port;
+d3(_dyndns_ok+'&nbsp;&nbsp;'+url);
+break;
+case 4:
+d3(_dyndns_sys_err);
+break;
+case 5:
+d3(_dyndns_badauth);
+break;
+case 6:
+d3(_dyndns_donator);
+break;
+case 7:
+d3(_dyndns_notfqdn);
+break;
+case 8:
+d3(_dyndns_nohost);
+break;
+case 9:
+d3(_dyndns_yours);
+break;
+case 10:
+d3(_dyndns_numhost);
+break;
+case 11:
+d3(_dyndns_abuse);
+break;
+case 12:
+d3(_dyndns_server_err);
+break;
+case 13:
+d3(_dyndns_chat_err);
+break;
+case 14:
+d3(_oray_chat_err);
+break;
+case 15:
+d3(_oray_bad_auth);
+break;
+case 16:
+d3(_oray_bad_host);
+break;
+case 17:
+url='';
+if (ddns_host!='')
+{
+url='&nbsp;&nbsp;'+'http://'+ddns_host;
+if (location.port!='') url=url+':'+location.port;
+}
+if (oray_type)
+d3(_oray_professional_ok+url);
+else
+d3(_oray_standard_ok+url);
+break;
+case 18:
+d3(_ddns_ok);
+break;
+case 19:
+d3(_ddns_failed);
+break;
+case 20:
+d3(_yu_ddns_ok);
+break;
+case 21:
+d3(_yu_ddns_failed);
+break;
+case 22:
+	d3(_factory_ok);
+	break;
+case 23:
+	d3(_factory_noauth);
+	break;
+case 24:
+	d3(_factory_noid);
+	break;
+case 25:
+	d3(_factory_over);
+	break;
+case 26:
+	d3(_factory_iddisable);
+	break;
+case 27:
+	d3(_factory_errparam);
+	break;
+case 28:
+	d3(_factory_unknownerr);
+	break;
+case 29:
+url='http://'+ddns_host;
+if (location.port!='') url+=':'+location.port;
+d3(_3322_ok+'&nbsp;&nbsp;'+url);
+break;
+case 30:
+d3(_3322_sys_err);
+break;
+case 31:
+d3(_3322_badauth);
+break;
+case 32:
+d3(_3322_donator);
+break;
+case 33:
+d3(_3322_notfqdn);
+break;
+case 34:
+d3(_3322_nohost);
+break;
+case 35:
+d3(_3322_yours);
+break;
+case 36:
+d3(_3322_numhost);
+break;
+case 37:
+d3(_3322_abuse);
+break;
+case 38:
+d3(_3322_server_err);
+break;
+case 39:
+d3(_3322_chat_err);
+break;
+case 40:
+d3(_9299_ok);
+break;
+case 41:
+d3(_9299_er);
+break;
+case 42:
+d3(_9299_da);
+break;
+case 43:
+d3(_9299_sne);
+break;
+case 44:
+d3(_9299_ne);
+break;
+case 45:
+d3(_9299_chat_err);
+break;
+}
+}
+function	set_factoryddns()
+{
+	surl='/set_factory_param.cgi?loginuse='+loginuser+'&loginpas='+loginpass+'&serviceindex='+(enable.checked?13:0)+'&next_url=ddns.htm';
+	location=surl;
+}
+</script>
+</head>
+<body onLoad="body_onload()">
+<table width="640" height="480">
+<tr height="25"><td class="v1 p2"><table width="100%" class="v2 f14 md1">
+<tr height="25"><td colspan="2" class="h1 v2 md2 f16"><strong> <script>document.write(_ddns_config);</script> </strong></td></tr>
+	<tr height="25">
+	  <td class="md4">&nbsp;&nbsp;<strong><script>document.write(_factoryDDNS);</script></strong></td>
+	  <td class="md2">&nbsp;&nbsp;<input id="enable" type="checkbox" onClick="set_factoryddns()"><script>document.write(_Enable)</script></td>
+	  </tr>
+	<tr id="tr_fa_svr" height="25">
+	  <td class="md4">&nbsp;&nbsp;<script>document.write(_server);</script></td>
+	  <td class="md2">&nbsp;&nbsp;<input name="factoryddnsServer" id="factoryddnsServer" maxlength="128" disabled="disabled"></td>
+	  </tr>
+	<tr id="tr_fa_acc" height="25">
+	  <td class="md4">&nbsp;&nbsp;<script>document.write(_acc);</script></td>
+	  <td class="md2">&nbsp;&nbsp;<input name="factoryddnsacc" id="factoryddnsacc" maxlength="128" disabled="disabled"></td>
+	  </tr>
+	<tr id="tr_fa_url" height="25">
+	  <td class="md4">&nbsp;&nbsp;<script>document.write(_factoryurl);</script></td>
+	  <td class="md2">&nbsp;&nbsp;<span id="factoryurl"></span></td>
+	  </tr>
+	<tr id="tr_fa_sta" height="25">
+	  <td class="md4">&nbsp;&nbsp;<script>document.write(_status);</script></td>
+	  <td class="md2">&nbsp;&nbsp;<span id="_factoryddnsinfo"></span></td>
+	  </tr>
+	<tr height="25">
+	  <td class="md2" colspan="2">&nbsp;</td>
+	  </tr>
+<tr height="25"><td width="30%" class="md4">&nbsp;&nbsp;<strong><script>document.write(_ddns_service);</script></strong></td><td class="md2">&nbsp;&nbsp;<select id="service" onChange="service_onchanged()">
+<script>
+document.write(_ddns_service_list);
+</script></select></td></tr>
+<tr id="tr_user" height="25"><td  class="md4">&nbsp;&nbsp; <script>document.write(_ddns_user);</script></td><td class="md2">&nbsp;&nbsp;<input id="user" maxlength="64"></td></tr>
+<tr id="tr_pwd" height="25"><td  class="md4">&nbsp;&nbsp; <script>document.write(_ddns_pwd);</script></td><td class="md2">&nbsp;&nbsp;<input id="pwd" type="password" maxlength="64"></td></tr>
+<tr id="tr_host" height="25"><td  class="md4">&nbsp;&nbsp; <script>document.write(_ddns_host);</script></td><td class="md2">&nbsp;&nbsp;<input id="host" maxlength="64"></td></tr>
+<tr id="tr_svr1" height="25"><td  class="md4">&nbsp;&nbsp; <script>document.write(_proxy_svr);</script></td><td class="md2">&nbsp;&nbsp;<input id="svr1" maxlength="64"></td></tr>
+<tr id="tr_port1" height="25"><td  class="md4">&nbsp;&nbsp; <script>document.write(_proxy_port);</script></td><td class="md2">&nbsp;&nbsp;<input id="port_inp1" maxlength="5" onKeyUp="value=value.replace(/[^\d]/g,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\d]/g,''))"></td></tr>
+<tr id="tr_svr"><td  class="md4">&nbsp;&nbsp; <!--<script>document.write(_proxy_svr);</script>-->Update URL</td><td class="md2">&nbsp;&nbsp;<input id="svr" style="width:350px;" maxlength="128"><br>&nbsp;&nbsp;<span id="svrhint" name="svrhint" class=tipf></span></td></tr>
+<tr id="tr_port" height="25"><td  class="md4">&nbsp;&nbsp; <!--<script>document.write(_mode);/*document.write(_proxy_port);*/</script>-->URL port</td><td>&nbsp;&nbsp;<input id="port_inp" value="80" maxlength="5" onKeyUp="value=value.replace(/[^\d]/g,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\d]/g,''))"><span class=tipf>(default：80)</span></td></tr>
+<tr id="tr_mode" height="25"><td  class="md4">&nbsp;&nbsp; <script>document.write(_mode);/*document.write(_proxy_port);*/</script></td><td class="md2">&nbsp;&nbsp;<select id="d_mode">
+<option value="1">1</option>
+<option value="2">2</option>
+</select></td></tr>
+<tr id="tr_restart_dyndns" style="display:none" height="25"><td class="md4">&nbsp;&nbsp; <script>document.write(_restart_dyndns);</script></td><td class="md2">&nbsp;&nbsp;<input id="restart_dyndns" type="checkbox">&nbsp;&nbsp; <script>document.write(_restart_dyndns_comment);</script></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp; <script>document.write(_status);</script></td><td id="ddns_status_info" class="md2">&nbsp;&nbsp;</td></tr>
+<tr height="25"><td class="md3" colspan="2" align="center"><button id="set" onClick="set_ddns()"> <script>document.write(_set);</script> </button>
+&nbsp;&nbsp;&nbsp;&nbsp;<button id="reload" onClick="location.reload()"> <script>document.write(_refresh);</script> </button></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>
+<script>
+removeSelfClass();$("#dd-ddns", parent.document).addClass("selected");
+if(pri != 255)  
+$("#set").hide();
+</script>
+
+<script type="text/javascript" src="rowscolor.js"></script>

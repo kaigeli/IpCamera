@@ -1,0 +1,130 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title></title>
+<script src="get_param.cgi"></script> 
+<script type="text/javascript" src="jquery/jquery.min.js"></script>
+<script type="text/javascript" src="public.js"></script>
+<link rel="stylesheet" href="style.css" type="text/css">
+<script>
+if (alias=='') 
+	alias=_anonymous;
+else
+	alias=alias;
+setDocTitle(_device+'('+alias+')');
+
+function checkzmornum(zmnum){ 
+var zmnumreg=/^[0-9a-za-z]*$/; 
+if(zmnum.value!=""&&!zmnumreg.test(zmnum.value)){ 
+return false; 
+}
+return true;
+}
+
+function set_users()
+{
+
+if($("#user3").val() == ''){
+alert(_user_x1);
+return;
+}
+if(($("#user1").val() == '')&&($("#user2").val() != '')){
+if($("#user2").val()==$("#user3").val())
+{
+alert(_user_x2);
+return;
+}
+}
+if(($("#user2").val() == '')&&($("#user1").val() != '')){
+if($("#user1").val()==$("#user3").val())
+{
+alert(_user_x2);
+return;
+}
+}
+if(($("#user2").val() != '')&&($("#user1").val() != '')){
+if(($("#user1").val()==$("#user3").val()) || ($("#user2").val() == $("#user3").val()) || ($("#user1").val()==$("#user2").val()))
+{
+alert(_user_x2);
+return;
+}
+}
+
+
+var zmnumreg=/^[0-9a-za-z]*$/; 
+if($("#pwd3").val()!=""&&!zmnumreg.test($("#pwd3").val())){ 
+alert(_PwdFormat);
+return;
+}
+
+
+var url;
+url='set_users.cgi?next_url=rebootme.htm';
+url+='&loginuse='+loginuser+'&loginpas='+encodeURIComponent(loginpass);
+url+='&user1='+encodeURIComponent($("#user1").val())+'&pwd1='+encodeURIComponent($("#pwd1").val())+'&pri1=1';//+$("#pri1").val();
+url+='&user2='+encodeURIComponent($("#user2").val())+'&pwd2='+encodeURIComponent($("#pwd2").val())+'&pri2=2';//+$("#pri2").val();
+url+='&user3='+encodeURIComponent($("#user3").val())+'&pwd3='+encodeURIComponent($("#pwd3").val())+'&pri3=255';//+$("#pri3").val();
+
+location=url;
+}
+
+function body_onload()
+{
+$("#user1").val((user1_name));
+$("#user2").val((user2_name));
+$("#user3").val((user3_name));
+
+
+$("#pwd1").val(user1_pwd);
+$("#pwd2").val(user2_pwd);
+$("#pwd3").val(user3_pwd);
+}
+
+</script>
+</head>
+<body onLoad="body_onload()">
+<table width="640" height="480">
+<tr height="25"><td class="v1 p2"><table width="100%" class="v2 f14 md1">
+<tr height="25"><td colspan="3" class="h1 v2 md2 f16"><strong><script>document.write(_users_config);</script></strong></td></tr>
+<tr>
+	<td width="30%" class="md4">&nbsp;&nbsp;</td>
+	<td class="md2">&nbsp;&nbsp;<script>document.write(_user);</script></td>
+	<td class="md2">&nbsp;&nbsp;<script>document.write(_pwd);</script></td>
+</tr>
+<tr>
+	<td align="center" class="md4"><script>document.write(_user_333);</script><!--<select id="pri8" disabled><script>document.write(_pri_list);</script></select>--></td>
+	<td class="md4"><input id="user3" readonly maxlength="16" onKeyUp="value=value.replace(/[^\w]/ig,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\w]/ig,''))"></td>
+	<td class="md2"><input id="pwd3" type="password" maxlength="16" onKeyUp="value=value.replace(/[^\w]/ig,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\w]/ig,''))"></td>
+</tr>
+<tr>
+	<td align="center" class="md4"><script>document.write(_user_222);</script><!--<select id="pri2" disabled><script>document.write(_pri_list);</script></select>--></td>
+	<td class="md4"><input id="user2" maxlength="16" onKeyUp="value=value.replace(/[^\w]/ig,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\w]/ig,''))"></td>
+	<td class="md2"><input id="pwd2" type="password" maxlength="16" onKeyUp="value=value.replace(/[^\w]/ig,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\w]/ig,''))"></td>
+</tr>
+<tr>
+	<td align="center" class="md4"><script>document.write(_user_111);</script></td>
+	<td class="md4"><input id="user1" maxlength="16" onKeyUp="value=value.replace(/[^\w]/ig,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\w]/ig,''))"></td>
+	<td class="md2"><input id="pwd1" type="password" maxlength="16" onKeyUp="value=value.replace(/[^\w]/ig,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\w]/ig,''))"></td>
+</tr>
+<tr height="25">
+  <td class="md3" colspan="3"><div align="left">
+    <span class="tipf" style="font-size:12px;"><script>document.write(_user_tip)</script></span>
+  </div></td>
+</tr>
+<tr height="25">
+	<td colspan="3" class="md3" align="center"><button id="set" onClick="set_users()"> <script>document.write(_set);</script> </button>
+&nbsp;&nbsp;&nbsp;&nbsp;
+<button id="reload" onClick="location.reload()"> <script>document.write(_refresh);</script> </button></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>
+<script>
+removeSelfClass();$("#dd-user", parent.document).addClass("selected");
+if(pri != 255)  
+$("#set").hide();
+</script>
+<script type="text/javascript" src="rowscolor.js"></script>

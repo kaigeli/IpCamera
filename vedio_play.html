@@ -1,0 +1,321 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<SCRIPT src="index.htm"></SCRIPT>
+<SCRIPT src="monitor.htm"></SCRIPT>
+<SCRIPT src="get_param.cgi"></SCRIPT>
+<SCRIPT type=text/javascript src="jquery/jquery.min.js"></SCRIPT>
+<SCRIPT type=text/javascript src="jquery/jquery-ui-1.8.18.custom.min.js"></SCRIPT>
+<SCRIPT type=text/javascript src="public.js"></SCRIPT>
+<LINK rel=stylesheet type=text/css href="jquery/jquery-ui-1.8.18.custom.css"><LINK rel=stylesheet type=text/css href="style.css">
+<STYLE type=text/css>
+.style1 {
+	COLOR: #ebebeb; FONT-SIZE: 16px; FONT-WEIGHT: bold
+}
+body {
+	margin-left: 0px;margin-top: 0px;margin-right: 0px;margin-bottom: 0px; background-color:#333333
+}
+.style2 {
+	font-size: 12px
+} td{font-family:Arial}
+</STYLE>
+<script type="text/javascript" charset="UTF-8">
+var vlc; // VLC对象
+var itemId;  // 播放列表中播放节目的id
+var vlcSound; // vlc音量大小（初始化默认为50）
+var videoLength; // 视频总时长
+var then_time; // 播放开始时间(播放开始的日期，看下面实现代码，它是毫秒哦)
+var isPlaying=0; // 是否播放状态 （0 未播放 1 播放）
+// 初始化 === 很重要哦，控制程序的入口
+function body_onload(){
+	refresh_record_file();
+}
+function refresh_record_file()
+{
+	var tb = document.getElementById("t2"); 
+	var strHead = "<table id=tbl border=\"1\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" id=\"strreturntable\">";
+	var strTail = "</table>";
+	var s,s1,s2;		
+	s=strHead;
+	if (video_num>0)
+	{		
+		for(i=0;i<video_num;i++)
+		{
+			s1=record_name0[i];
+			if(s1=="") continue;
+			s+="<tr id=tr"+i+"><td width=100% height=26 align=\"center\">"
+			s+="<span class='f14 cs' onclick=\"play_video('"+record_name0[i]+"')\" ondblclick=\"video_download('"+record_name0[i]+"')\">"+s1+"</span>&nbsp;<input type=\"button\"  value=\"delete\" onclick=\"deleteFile('"+record_name0[i]+"')\" id="+record_name0[i]+" />";							
+			s+="</td></tr>";
+		}
+	}
+	s+=strTail;
+	tb.innerHTML=s;
+	vlc=document.getElementById("vlc");
+	vlc.video.aspectRatio="850:600";
+}
+function deleteFile( fileName ){
+	var delFileName="/mnt/sdcard/VIDEO-FRONT/"+fileName;
+//	alert(delFileName);
+	var url = 'set_param.cgi?group_tag=set_value&next_url=video_play.html';
+	url+='&set_cmd=DelFile';
+	url+='&value='+delFileName;
+	url+='&' + new Date().getTime() + Math.random();
+	location=url;
+
+}
+function play_video(video_name){
+	vlc=document.getElementById("vlc");
+	// 添加播放地址
+	var video_url = "http://"+ip+":8080/video/"+video_name;
+	itemId= vlc.playlist.add(video_url);
+    vlc.playlist.playItem(itemId);  
+    // 获取VLC当前音量
+    vlcSound=vlc.audio.volume;
+    // 设置VLC音量值
+    document.getElementById("vlc_sound").value=vlcSound;
+    // 播放按钮不可用
+    document.getElementById("play_button").disabled=true;
+    // 检查播放节目的状态 -- 注意这个是延时操作哦（setTimeout以毫秒为单位，这里延时0.5秒）
+    setTimeout(checkVedioStatus,500);
+}
+function video_download(video_name){
+	var video_url = "http://"+ip+":8080/video/"+video_name;
+	try{ 
+            var elemIF = document.createElement("iframe");   
+            elemIF.src = video_url;   
+            elemIF.style.display = "none";   
+            document.body.appendChild(elemIF);   
+        }catch(e){ 
+ 
+    } 
+}
+// 检查播放节目的状态
+function checkVedioStatus(){
+    if(vlc.input.state>2 && vlc.input.state<5){
+     isPlaying=1;
+     // vlc.input.time 当前播放时长，单位毫秒
+     // vlc.input.length 节目总时长，单位毫秒
+     videoLength=parseInt(vlc.input.length/1000);
+     var temp_total_time=parseTime(videoLength);
+     // 总时长设置
+     document.getElementById("video_length").value=temp_total_time;
+     // 当前可以输入时间段跳转
+     document.getElementById("time_change").disabled=false;
+     // 获得当前系统时间
+     then_time=new Date().getTime();
+     // 计算当前播放时间点
+     checkTime();
+    }else{
+     // 如果不是播放状态就在延时执行
+     setTimeout(checkVedioStatus,500);
+    }
+}
+// 实时检测系统时间，计算视频的播放时长（典型的秒表功能）
+function checkTime(){
+	if(isPlaying==1){
+		setTimeout("checkTime();",50);
+		var temp_time=parseInt((new Date().getTime() - then_time)/1000);
+		document.getElementById("current_video_time").value=parseTime(temp_time);
+	}
+}
+// 改变播放地址
+function changeNewBeginTime(){
+	// vlc.input.time 获取当前播放时间（毫秒）/也可重设当前播放时间点
+	var jumpTime=document.getElementById("change_length").value;
+	if(jumpTime!=""){
+		if(jumpTime>videoLength){
+			alert("对不起，输入值大于视频总时长...");
+			return;
+		}
+		vlc.input.time=jumpTime*1000;
+		then_time=new Date()-jumpTime*1000;
+	}
+}
+// 把秒转换为时间格式（HH：mm：ss）
+function parseTime(numLength){
+	var h_time=0;
+	var m_time=0;
+	var s_time=0;
+	if(numLength>=60){
+		m_time=parseInt(numLength/60);
+		s_time=parseInt(numLength%60);
+	}else{
+	s_time=numLength;
+	}
+	if(m_time>=60){
+		h_time=parseInt(m_time/60);
+		m_time=parseInt(m_time%60);
+	}
+ 
+	if(h_time<10){
+		h_time="0"+h_time;
+	}
+	if(m_time<10){
+		m_time="0"+m_time;
+	}
+	if(s_time<10){
+		s_time="0"+s_time;
+	}
+	return h_time+":"+m_time+":"+s_time;
+}
+// 停止播放
+function stopPlay(){
+	vlc.playlist.stop();
+	isPlaying=0;
+	// 修改播放/停止按钮状态
+	document.getElementById("play_button").disabled=false;
+    document.getElementById("stop_button").disabled=true;
+   
+    // 修改跳转按钮的状态
+    document.getElementById("change_length").value="";
+    document.getElementById("time_change").disabled=true;
+   
+    // 当前视频播放时间点清空
+    document.getElementById("current_video_time").value="";
+}
+// 重新播放
+function repeatPlay(){
+	vlc.playlist.play();
+	setTimeout(checkVedioStatus,500);
+	// 修改播放/停止按钮状态
+	document.getElementById("play_button").disabled=true;
+    document.getElementById("stop_button").disabled=false;
+}
+// 静音
+function noSound(){
+	if(vlcSound>0){
+		vlcSound=0;
+	}
+	vlc.audio.toggleMute();
+	vlcSound=vlc.audio.volume;
+	document.getElementById("vlc_sound").value=vlcSound;
+	if(vlcSound==0){
+		// document.getElementById("no_sound").value="&nbsp;恢复音量&nbsp;";
+		document.getElementById("no_sound").value=" "+"恢复音量"+" ";
+	}else{
+		// document.getElementById("no_sound").value="&nbsp;静&nbsp;&nbsp;&nbsp;&nbsp;音&nbsp;";
+		document.getElementById("no_sound").value=" "+"静"+"  "+"音"+" ";
+	}
+}
+// 音量加减
+function soundChange(nums){
+	if(nums<0 && vlcSound==0){
+		alert("音量最小，不能再减少音量....");
+		return;
+	}
+	vlcSound+=nums;
+	if(vlcSound<=0){
+		vlcSound=0;
+		document.getElementById("no_sound").value=" "+"恢复音量"+" ";
+	}else{
+		// 当音量>0的时候，都要把静音的标识打开
+		document.getElementById("no_sound").value=" "+"静"+"  "+"音"+" ";
+	}
+	if(vlcSound>200){
+		alert("音量最大，不能再增大音量....");
+		vlcSound=200;
+	}
+	vlc.audio.volume =vlcSound;
+	document.getElementById("vlc_sound").value=vlcSound;
+}
+//全屏
+function screenFull(){
+	vlc=document.getElementById("vlc");
+	vlc.video.toggleFullscreen();
+}
+</script>
+</head>
+<body onload="body_onload()" >
+<TABLE cellSpacing=0 cellPadding=0 width=1080 bgColor=#333333 align=center 
+height=32>
+  <TBODY>
+  <TR>
+    <TD>
+      <TABLE border=0 cellSpacing=0 cellPadding=0 align=right>
+        <TBODY>
+        <TR>
+          <TD><IMG src="images/btn_shezhi.gif" width=22 height=22></TD>
+          <TD id=admin2><A class="style1 link1" 
+            href="index.htm" target=_self>
+            <SCRIPT>document.write(_configdevice);</SCRIPT>
+            </A></TD>
+          <TD width=10></TD>
+          <TD><IMG src="images/back.gif" width=22 height=22></TD>
+          <TD><A class="style1 link1" 
+            href="monitor.htm" target=_self>
+            <SCRIPT>document.write(_goback);</SCRIPT>
+            </A></TD></TR></TBODY>
+	  </TABLE>
+	</TD>
+  </TR>
+  </TBODY>
+</TABLE>
+			
+			
+<TABLE cellSpacing=0 cellPadding=0 width=1080 align=center 
+height=600 style="visibility:visible;">
+  <TBODY>
+  <TR>
+	<TD vAlign=middle align=center>
+      <TABLE 
+      border=0 cellSpacing=0 cellPadding=0 style="visibility:visible; TEXT-ALIGN: center;  VERTICAL-ALIGN: middle" >
+        <TBODY>
+        <TR>
+		<DIV>
+		<OBJECT classid="clsid:9BE31822-FDAD-461B-AD51-BE1D1C159921"
+				codebase="http://downloads.videolan.org/pub/videolan/vlc/latest/win32/axvlc.cab"
+			    width="850px" style="visibility:visible;" height="599px" id="vlc" events="True">
+			<embed type="application/x-vlc-plugin"   pluginspage="htttp://www.videolan.org"    
+			   width="640px"    
+			   height="480px"      
+			   name="vlc">    
+			</embed>  
+			<param name='mrl' value='' />
+			<param name='volume' value='50' />
+			<param name='autoplay' value='true' />
+			<param name='loop' value='false' />
+			<param name='fullscreen' value='true' />
+			<font color=white><strong>Error:</strong> Videolan插件尚未安装，请访问 <a href="http://www.videolan.org"><font color=white>www.videolan.org</font></a> 下载。请安装时务必勾选[Mozilla 插件]  
+            </font>
+		 </OBJECT>
+		</DIV>
+	<br><br>
+	<input type="button" value="&nbsp;播&nbsp;&nbsp;&nbsp;&nbsp;放&nbsp;"  onclick="repeatPlay();" id="play_button">&nbsp;&nbsp;
+	<input type="button" value="&nbsp;停&nbsp;&nbsp;&nbsp;&nbsp;止&nbsp;"  onclick="stopPlay();" id="stop_button">&nbsp;&nbsp;
+	<input type="button" value="&nbsp;静&nbsp;&nbsp;&nbsp;&nbsp;音&nbsp;"  onclick="noSound();" id="no_sound">&nbsp;&nbsp;
+	<input type="button" value="&nbsp;减少音量&nbsp;"  onclick="soundChange(-10);">&nbsp;&nbsp;
+	<input type="button" value="&nbsp;增大音量&nbsp;"  onclick="soundChange(10);">&nbsp;&nbsp;
+	<input type="button" value="&nbsp;全&nbsp;&nbsp;&nbsp;&nbsp;屏&nbsp;"  onclick="screenFull();">
+	&nbsp;&nbsp;&nbsp;&nbsp;
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<font color="red" size="2">音量：</font><input type="text" id="vlc_sound" style="width: 40px;color: blue">
+	<br>
+	<font color="red" size="2">总时长：</font><input type="text" id="video_length" style="width: 65px;color: blue">&nbsp;
+	<input type="text" id="current_video_time" style="width: 65px;color: blue">
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<font color="red" size="2">跳转：</font><input type="text" id="change_length" style="width: 100px;color: blue">
+	<span style="color: blue;font-weight: normal;font-size: 14px">秒</span>
+	&nbsp;
+	<input type="button" value="确定" id="time_change" disabled="disabled" onclick="changeNewBeginTime();">
+ </TR></TBODY></TABLE></TD>   
+	
+<TD vAlign=top width=250px>
+	<TABLE width="250px" bgColor=white>
+	<TBODY>
+	<TR>
+	  <TD>
+		<DIV style="WIDTH: 250px; HEIGHT: 575px; OVERFLOW: auto" id=t2>
+		<TABLE id=strreturntable border=1 cellSpacing=0 cellPadding=0 
+		width="230px">
+		  <TBODY></TBODY></TABLE></DIV></TD></TR>
+		<TR height=25>
+			<td class="tCenter mid03" colspan="2" align="center"><button onclick="location.reload()">
+			  <script>document.write(_refresh);</script>
+			</button>
+			</td>
+		</TR>		
+	</TBODY>
+	</TABLE>
+</TD></TR></TBODY></TABLE>
+</body>
+</html> 

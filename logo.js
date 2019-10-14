@@ -1,0 +1,1 @@
+img_logo.src="images/logo.gif";

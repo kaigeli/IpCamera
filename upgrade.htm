@@ -1,0 +1,56 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title></title>
+<script src="get_param.cgi"></script>
+<script type="text/javascript" src="jquery/jquery.min.js"></script>
+<script type="text/javascript" src="public.js"></script>
+<link rel="stylesheet" href="style.css" type="text/css">
+<script>
+if (alias=='') 
+	alias=_anonymous;
+else
+	alias=alias;
+setDocTitle(_device+'('+alias+')');
+</script>
+</head>
+<body>
+<table width="640" height="480">
+<tr height="25"><td class="v1 p2"><table width="100%" class="v2 f14 md1">
+<tr height="25"><td colspan="2" class="h1 v2 md2 f16"><strong><script>document.write(_upgrade_firmware);</script></strong></td></tr>
+<tr><td class="md4">&nbsp;&nbsp;<script>document.write(_reboot);</script></td><td class="md2">&nbsp;&nbsp;<button id="set2" onClick="javascript:reboot();"> <script>document.write(_reboot);</script></button></td></tr>
+<tr><td width="40%"class="md4">&nbsp;&nbsp;<script>document.write(_restore_factory);</script></td><td class="md2">&nbsp;&nbsp;<button id="set1" onClick="javascript:restore_factory();"> 
+<script>document.write(_restore_factory);</script> 
+</button></td></tr>
+<tr><td class="md4">&nbsp;&nbsp;<script>document.write(_upgrade_swware);</script></td>
+<form action="upgrade_firmware.cgi?next_url=reboot.htm" method="post" enctype="multipart/form-data">
+<td class="md2">&nbsp;&nbsp;
+<input type="file" name="file1" id="file1" size="20">
+&nbsp;&nbsp;
+<button id="set3" onClick="if($('#file1').val()=='') return false;top.reboot_seconds=90;form.submit();this.disabled=true;"> 
+<script>document.write(_upgrade);</script> 
+</button></td>
+</form>
+</tr>
+<tr><td class="md5">&nbsp;&nbsp;<script>document.write(_upgrade_awware);</script></td>
+<form action="upgrade_htmls.cgi?next_url=reboot.htm" method="post" enctype="multipart/form-data">
+<td class="md3">&nbsp;&nbsp;
+<input type="file" name="file1" id="file2" size="20">
+&nbsp;&nbsp;
+<button id="set4" onClick="javascript:if($('#file2').val()=='') return false;top.reboot_seconds=90;form.submit();this.disabled=true;"> 
+<script>document.write(_upgrade);</script> 
+</button></td>
+</form>
+</tr>
+</table></td>
+</tr>
+</table>
+</body>
+</html>
+<script>
+removeSelfClass();$("#dd-upgrade", parent.document).addClass("selected");
+if(pri != 255)  {
+$("#set1").hide();$("#set2").hide();$("#set3").hide();$("#set4").hide();$
+}
+</script>
+<script type="text/javascript" src="rowscolor.js"></script>

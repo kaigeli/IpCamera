@@ -1,0 +1,118 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title></title>
+<script src="get_status.cgi"></script> 
+<script src="get_misc.cgi"></script>
+<script src="camera_control.cgi"></script>
+<script src="get_camera_params.cgi"></script>
+<script type="text/javascript" src="jquery/jquery.min.js"></script>
+<script type="text/javascript" src="public.js"></script>
+<link rel="stylesheet" href="style.css" type="text/css">
+<script>
+if (alias=='') 
+	alias=_anonymous;
+else
+	alias=alias;
+setDocTitle(_device+'('+alias+')');
+function set_ptz()
+{
+var url;
+url='set_misc.cgi?next_url=ptz.htm';
+url+='&loginuse='+loginuser+'&loginpas='+encodeURIComponent(loginpass);
+
+url+='&ptz_patrol_rate='+$("#pt_speed").val();
+url+='&ptz_patrol_up_rate='+$("#pt_speed").val();
+url+='&ptz_patrol_down_rate='+$("#pt_speed").val();
+url+='&ptz_patrol_left_rate='+$("#pt_speed").val();
+url+='&ptz_patrol_right_rate='+$("#pt_speed").val();
+
+url+='&ptz_dispreset='+(($("#preset_enable").attr("checked")=="checked")?0:1);
+url+='&ptz_preset='+$("#pt_preset").val();
+url+='&led_mode='+$("#led_mode_id").val();
+url+='&ptz_run_times='+$("#pt_run").val();
+url+='&osdenable='+(($("#osd_enable").attr("checked")=="checked")?1:0);
+location=url;
+}
+function body_onload()
+{
+$("#preset_enable").attr("checked",ptz_disppreset?false:true);
+$("#pt_preset").val(preset_onstart);
+$("#pt_speed").val(ptz_patrol_rate);
+
+$("#pt_run").val(ptruntimes);
+$("#led_mode_id").val(led_mode);
+
+$("#osd_enable").attr("checked",OSDEnable?true:false);
+}
+</script>
+</head>
+<body onLoad="body_onload()">
+<table width="640" height="480">
+<tr height="25"><td class="v1 p2"><table width="100%" class="v2 f14 md1">
+<tr height="25"><td colspan="2" class="h1 v2 md2 f16"><strong><script>document.write(_ptz_config);</script></strong></td></tr>
+<tr height="25"><td width="40%" class="md4">&nbsp;&nbsp; <script>document.write(_presetenable);</script></td><td class="md2">&nbsp;&nbsp;<input type="checkbox" id="preset_enable" /></td></tr>
+<tr id="tr_pt_preset" height="25"><td class="md4">&nbsp;&nbsp; <script>document.write(_preset_onstart);</script></td><td class="md2">&nbsp;&nbsp;<select id="pt_preset">
+<option value="0"><script>document.write(_none);</script></option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+<option value="7">7</option>
+<option value="8">8</option>
+<option value="9">9</option>
+<option value="10">10</option>
+<option value="11">11</option>
+<option value="12">12</option>
+<option value="13">13</option>
+<option value="14">14</option>
+<option value="15">15</option>
+<option value="16">16</option>
+</select></td>
+</tr>
+<tr height="25"><td width="40%" class="md4">&nbsp;&nbsp; <script>document.write(_setosd);</script></td><td class="md2">&nbsp;&nbsp;<input type="checkbox" id="osd_enable" /></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp; <script>document.write(_pt_speed);</script></td><td class="md2">&nbsp;&nbsp;<select id="pt_speed">
+<option value="0">0</option>
+<option value="2">1</option>
+<option value="4">2</option>
+<option value="6">3</option>
+<option value="8">4</option>
+<option value="10">5</option>
+<option value="12">6</option>
+<option value="14">7</option>
+<option value="16">8</option>
+<option value="18">9</option>
+<option value="20">10</option>
+</select>&nbsp;&nbsp;<span class=tipf>(<script>document.write(_default_s)</script>:5)</span></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp; <script>document.write(_pt_run);</script></td><td class="md2">&nbsp;&nbsp;<select id="pt_run">
+<option value="0"><script>document.write(_pt_run_always);</script></option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+<option value="7">7</option>
+<option value="8">8</option>
+<option value="9">9</option>
+<option value="10">10</option>
+</select></td>
+</tr>
+<tr height="25"><td class="md4" width="40%">&nbsp;&nbsp; <script>document.write(_led_mode);</script></td><td class="md2">&nbsp;&nbsp;<select id="led_mode_id"><option value="0"><script>document.write(_close);</script></option><option value="1"><script>document.write(_mode_1);</script></option></select></td></tr>
+<tr height="25"><td colspan="2" class="md3" align="center"><button id="set" onClick="set_ptz()"> <script>document.write(_set);</script> </button>
+&nbsp;&nbsp;&nbsp;&nbsp;
+<button id="reload" onClick="location.reload()"> <script>document.write(_refresh);</script> </button></td></tr>
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>
+<script>
+removeSelfClass();$("#dd-ptz", parent.document).addClass("selected");
+if(pri != 255)  
+$("#set").hide();
+</script>
+<script type="text/javascript" src="rowscolor.js"></script>

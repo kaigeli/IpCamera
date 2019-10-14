@@ -1,0 +1,173 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="date" content="0">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<meta http-equiv="expires" content="0">
+<link rel="stylesheet" href="style.css" type="text/css">
+<title></title>
+<script src="get_param.cgi"></script>
+<script type="text/javascript" src="jquery/jquery.min.js"></script>
+<script type="text/javascript" src="public.js"></script>
+<script src="appver.js"></script>
+<script>
+function set_language(language)
+{
+	var vlanguage=$("#mode_sel").val();	
+	if(vlanguage==2)		
+		setcookie('language',"simple_chinese",720);
+	else if(vlanguage==3)		
+		setcookie('language',"traditional_chinese",720);				
+	else 
+		setcookie('language',"english",720);
+	parent.location.reload();
+}
+
+function d1(msg)
+{
+$("#alarm_status_info").html("&nbsp;&nbsp;"+msg);
+}
+function d3(msg)
+{
+$("#upnp_status_info").html("&nbsp;&nbsp;"+msg);
+}	
+function d4(msg)
+{
+}	
+function sd(sdtotal){
+$("#sd_status_info").html("&nbsp;&nbsp;"+sdtotal+"MB");
+}
+function sd1(sdtotal){
+$("#sd_status_info1").html("&nbsp;&nbsp;"+sdtotal+"MB");
+}
+function sd2(sdstatus){
+$("#sd_status_info2").html("&nbsp;&nbsp;"+sdstatus);
+}
+function d2(status){
+$("#dns_status_info").html("&nbsp;&nbsp;"+status);
+}
+
+function body_onload()
+{
+if (alarm_status==1)	
+d1(_motion_alarm);
+else if (alarm_status==2)
+d1(_input_alarm);
+else
+d1(_none);
+
+switch (factory_status)
+{
+case 0:
+	d2(_ddns_noaction);
+	break;
+case 1:
+	d2(_ddns_waiting);
+	break;
+case 2:
+	d2(_ddns_cannotconnect);
+	break;
+case 22:
+	d2(_factory_ok);
+	break;
+case 23:
+	d2(_factory_noauth);
+	break;
+case 24:
+	d2(_factory_noid);
+	break;
+case 25:
+	d2(_factory_over);
+	break;
+case 26:
+	d2(_factory_iddisable);
+	break;
+case 27:
+	d2(_factory_errparam);
+	break;
+case 28:
+	d2(_factory_unknownerr);
+	break;
+}
+
+if (upnp_status==0)
+d3(_upnp_msg0);
+else if (upnp_status==1)
+d3(_upnp_msg1);
+else if (upnp_status==2)
+d3(_upnp_msg2);
+else if (upnp_status==3)
+d3(_upnp_msg3);
+else if (upnp_status==4)
+d3(_upnp_msg4);
+else if (upnp_status==5)
+d3(_upnp_msg5);
+
+	if(record_sd_status == 2) 
+		$("#record_sd_info").html("&nbsp;&nbsp;"+_sd_exist);//recording
+	else if(record_sd_status == 1) 
+		$("#record_sd_info").html("&nbsp;&nbsp;"+_disk_4);
+	else if(record_sd_status == 3)
+		$("#record_sd_info").html("&nbsp;&nbsp;"+_disk_3);
+	else if(record_sd_status == 4)
+	    $("#record_sd_info").html("&nbsp;&nbsp;"+_disk_5);
+	else if(record_sd_status == 5)
+	    $("#record_sd_info").html("&nbsp;&nbsp;"+_disk_6);
+	else
+		$("#record_sd_info").html("&nbsp;&nbsp;"+_disk_2);
+		
+	if(deviceid!="")
+			document.getElementById("tr_deviceid").style.display="";
+}
+</script>
+</head>
+<body  onLoad="body_onload()" onContextMenu="return false">
+<table width="640" height="480">
+<tr height="25"><td class="v1 p2"><table width="100%" class="v2 f14 md1">
+<tr height="25"><td colspan="2" class="h1 v2 md2 f16"><strong><script>document.write(_devicestatus);</script></strong></td></tr>
+<tr height="25"><td width="30%" class="md4">&nbsp;&nbsp;<script>document.write(_sw_ver);</script></td><td class="md2">&nbsp;&nbsp;<script>document.write(sys_ver);</script></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;<script>document.write(_aw_ver);</script></td><td class="md2">&nbsp;&nbsp;<script>document.write(app_ver);</script></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;<script>document.write(_sdk_ver);</script></td><td class="md2">&nbsp;&nbsp;<script>document.write(version);</script></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;<script>document.write(_alias);</script></td><td class="md2">&nbsp;&nbsp;<script>document.write(device_name);</script></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;<script>document.write(dev_status);</script></td><td class="md2">&nbsp;&nbsp;<script>document.write(status);</script></td></tr>
+<tr height="25" style="display:none" id="tr_deviceid"><td class="md4">&nbsp;&nbsp;<script>document.write(_dev_id);</script></td><td class="md2">&nbsp;&nbsp;<script>document.write(deviceid);</script></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;<script>document.write(_alarmstatus);</script></td><td id="alarm_status_info" class="md2">&nbsp;&nbsp;</td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;<script>document.write(_upnp_status);</script></td><td id="upnp_status_info" class="md2">&nbsp;&nbsp;</td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;<script>document.write(_manufacturer);</script></td><td class="md2">&nbsp;&nbsp;<script>document.write(manufacturer);</script></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;<script>document.write(_ddns_status);</script></td><td id="dns_status_info" class="md2">&nbsp;&nbsp;</td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;<script>document.write(_record_sd_status);</script></td><td class="md2"><span id="record_sd_info"></span></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;CPU</td><td class="md2">&nbsp;&nbsp;<script>document.write(cpu);</script></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;CPU TYPE</td><td class="md2">&nbsp;&nbsp;<script>document.write(cputype);</script></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;MODEL</td><td class="md2">&nbsp;&nbsp;<script>document.write(model);</script></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;MAC</td><td class="md2">&nbsp;&nbsp;<script>document.write(mac.toUpperCase());</script></td></tr>
+<tr><td class="md4">&nbsp;&nbsp;WiFi MAC</td><td class="md2">&nbsp;&nbsp;<script>document.write(wifimac.toUpperCase());</script></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;<script>document.write(_language);</script></td><td class="md2">&nbsp;&nbsp;<select id="mode_sel" onChange="javascript:set_language()">
+  <option value="1">
+  <script>document.write(_english);</script>
+  </option>
+  <option value="2">
+  <script>document.write(_chinese);</script>
+  </option>
+  <option value="3">
+  <script>document.write(_tchinese);</script>
+  </option>
+</select>
+</td>
+</tr>
+<tr height="25"><td class="h2 md3" colspan="2" align="center"><button onClick="location.reload()"> <script>document.write(_refresh);</script></button></td></tr>
+</table></td>
+</tr>
+</table>
+</body>
+</html><script>
+removeSelfClass();$("#dd-status", parent.document).addClass("selected");
+if(language=="simple_chinese")
+	$("#mode_sel").val(2);	
+else if(language=="traditional_chinese")
+	$("#mode_sel").val(3);		
+else
+	$("#mode_sel").val(1);	
+
+</script>
+<script type="text/javascript" src="rowscolor.js"></script>

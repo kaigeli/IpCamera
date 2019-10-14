@@ -1,0 +1,19 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML><HEAD><TITLE></TITLE>
+<script src="get_param.cgi"></script>
+<script type="text/javascript" src="jquery/jquery.min.js"></script>
+<script type="text/javascript" src="jquery/jquery-ui-1.8.18.custom.min.js"></script>
+<script type="text/javascript" src="public.js"></script>
+<script>   
+function body_onload()  
+{  
+	var url = 'set_param.cgi?&group_tag=set_value';
+	url+='&set_cmd=TakePicture';
+	url+='&monitor_ip='+ip;
+	url+='&' + new Date().getTime() + Math.random();
+	location=url;
+}  
+</script> 
+<body onload="body_onload()">
+</body>
+</html>

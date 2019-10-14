@@ -1,0 +1,108 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="date" content="0">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<meta http-equiv="expires" content="0">
+<link rel="stylesheet" href="style.css" type="text/css">
+<title></title>
+<script src="get_param.cgi"></script> 
+<script type="text/javascript" src="jquery/jquery.min.js"></script>
+<script type="text/javascript" src="public.js"></script>
+<script>
+function set_ftp()
+{
+//if($("#svr").val()=='')
+//{
+//	alert(_not_null);
+//	$("#svr").focus();
+//	return;
+//}
+//
+if($("#port_inp").val()=='')
+{
+	alert(_not_null);
+	$("#port_inp").focus();
+	return;
+}
+
+if(($("#port_inp").val()<1) || ($("#port_inp").val()>65535))
+{
+	alert(_port_range);
+	$("#port_inp").focus();
+	$("#port_inp").select();
+	return;
+}
+
+if($("#uploadstretch").val()=='')
+{
+	$("#uploadstretch").val(0);
+}
+
+if($("#uploadstretch").val() <30&&$("#uploadstretch").val()!=0)
+{
+     $("#uploadstretch").val(0);
+}else if($("#uploadstretch").val()>3600){
+     $("#uploadstretch").val(3600);
+}
+var url;
+url='set_ftp.cgi?next_url=ftp.htm';
+url+='&loginuse='+loginuser+'&loginpas='+encodeURIComponent(loginpass);
+url+='&svr='+encodeURIComponent($("#svr").val());
+url+=($("#port_inp").val()=='')?'&port=21':'&port='+$("#port_inp").val();
+url+='&user='+encodeURIComponent($("#user").val());
+url+='&pwd='+encodeURIComponent($("#pwd").val());
+url+='&dir=/';//+$("#dir").val();
+url+='&mode=0';//+$('#mode_sel')[0].selectedIndex;
+url+='&upload_interval='+$("#uploadstretch").val();
+//alert(url);
+//if(pri != 1)
+location=url;
+}
+function ftp_test()
+{
+var url;
+url='ftptest.cgi?next_url=test_ftp.htm';
+url+='&loginuse='+loginuser+'&loginpas='+encodeURIComponent(loginpass);
+window.open(url,"","")
+}
+function body_onload()
+{
+$("#svr").val(ftp_svr);
+$("#port_inp").val((!ftp_port)?21:ftp_port);
+$("#user").val(ftp_user);
+$("#pwd").val(ftp_pwd);
+$("#uploadstretch").val(ftp_upload_interval);
+}
+</script>
+</head>
+<body onLoad="body_onload()">
+<table width="640" height="480">
+<tr height="25"><td class="v1 p2"><table width="100%" class="v2 f14 md1">
+<tr height="25"><td colspan="2" class="h1 v2 md2 f16"><strong> <script>document.write(_ftp_config);</script> </strong></td></tr>
+<tr height="25"><td width="30%" class="md4">&nbsp;&nbsp; <script>document.write(_ftp_svr);</script></td><td class="md2">&nbsp;&nbsp;<input id="svr" maxlength="64"></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp; <script>document.write(_ftp_port);</script></td><td class="md2">&nbsp;&nbsp;<input id="port_inp" maxlength="5" onKeyUp="value=value.replace(/[^\d]/g,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\d]/g,''))"><span class=tipf>&nbsp;&nbsp;(<script>document.write(_default_s)</script>:21)</span></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp; <script>document.write(_ftp_user);</script></td><td class="md2">&nbsp;&nbsp;<input id="user" maxlength="64"></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp; <script>document.write(_ftp_pwd);</script></td><td class="md2">&nbsp;&nbsp;<input id="pwd" type="password" maxlength="64"></td></tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp; <script>document.write(_ftp_upload_interval);</script></td><td class="md2">&nbsp;&nbsp;<input value="0" id="uploadstretch" maxlength="5" onKeyUp="value=value.replace(/[^\d]/g,'')" onbeforepaste="clipboardData.setData('text',clipboardData.getData('text').replace(/[^\d]/g,''))">&nbsp;&nbsp;<script>document.write(_ftp_upimg_stretch);</script></td></tr>
+<tr style="display:none" height="25"><td class="md4">&nbsp;&nbsp; <script>document.write(_ftp_dir);</script></td><td class="md2">&nbsp;&nbsp;<input id="dir" maxlength="64"></td></tr>
+<tr style="display:none" height="25"><td class="md4">&nbsp;&nbsp; <script>document.write(_ftp_mode);</script></td><td class="md2">&nbsp;&nbsp;<select id="mode_sel" >
+<option>PORT</option>
+<option>PASV</option>
+</select></td>
+</tr>
+<tr height="25"><td class="md4">&nbsp;&nbsp;</td><td class="md2">&nbsp;&nbsp;<button onClick="ftp_test()"> <script>document.write(_test);</script></button>&nbsp;&nbsp;&nbsp;&nbsp;<span class=tipf><script>document.write(_test_info);</script></span></td></tr>
+<tr height="25"><td colspan="2" class="md3" align="center"><button id="set" onClick="set_ftp()"><script>document.write(_set);</script></button>
+&nbsp;&nbsp;&nbsp;&nbsp;
+<button id="reload" onClick="location.reload()"><script>document.write(_refresh);</script> </button></td></tr>
+</table></td></tr>
+</table>
+</body>
+</html>
+<script>
+removeSelfClass();$("#dd-ftp", parent.document).addClass("selected");
+if(pri != 255)  
+$("#set").hide();
+</script>
+<script type="text/javascript" src="rowscolor.js"></script>
