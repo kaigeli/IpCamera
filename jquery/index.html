@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="us">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Example Page</title>
+	<link href="jquery-ui.css" rel="stylesheet">
+	<style>
+	.demoHeaders {
+		margin-top: 2em;
+	}
+	</style>
+</head>
+<body>
+<!-- Slider -->
+<h2 class="demoHeaders">Slider</h2>
+<div id="slider"></div>
+<script src="jquery.js"></script>
+<script src="jquery-ui.js"></script>
+<script>
+$( "#slider" ).slider({
+	range: true,
+	values: [ 17, 67 ]
+});
+
+// Hover states on the static widgets
+$( "#dialog-link, #icons li" ).hover(
+	function() {
+		$( this ).addClass( "ui-state-hover" );
+	},
+	function() {
+		$( this ).removeClass( "ui-state-hover" );
+	}
+);
+</script>
+</body>
+</html>
